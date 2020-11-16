@@ -76,7 +76,7 @@ class MenuControlButton: public Button {
   protected:
     void shortClick() {
       //Next changeInterval
-      menu.changeMenuMode();
+      menu.advanceMenu();
     }
 
     void longClick() {

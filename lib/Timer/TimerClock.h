@@ -10,158 +10,210 @@ class TimerClock {
   DisplayControl &displayLed;
   char displayText[6];
   unsigned long startTimeMs;
-  bool preCountDownOn;
   enum State {
-    STOPPED = 0,
-    PRECOUNTDOWN = 1,
-    RUNNING = 2
+    PAUSE,
+    PRECOUNTDOWN,
+    RUN_UP,
+    RUN_DOWN,
+    TIMER_END
   }state;
   int activeSecond;
   
 //Todo: Add reference to display
-  private:
-    void beepAtTheEnd() {
-      if (secondsLeftThisInterval() == 0) {
+private:
+  void beepAtTheEnd() {
+    if (secondsLeftThisInterval() == 0) {
+      EasyBuzzer.singleBeep(
+                    5000, 	// Frequency in hertz(HZ).  
+                    1000 	// Duration of the beep in milliseconds(ms). 
+                    //done		// [Optional] Function to call when done.
+                    );
+    }
+    else {
+      if (state == PRECOUNTDOWN && secondsLeftThisInterval() < 4){
         EasyBuzzer.singleBeep(
-                      5000, 	// Frequency in hertz(HZ).  
-                      1000 	// Duration of the beep in milliseconds(ms). 
-                      //done		// [Optional] Function to call when done.
-                      );
+                    5000, 	// Frequency in hertz(HZ).  
+                    500 	// Duration of the beep in milliseconds(ms). 
+                    //done		// [Optional] Function to call when done.
+                    );
       }
-      else {
-        if (preCountDownOn && secondsLeftThisInterval() < 4){
-          EasyBuzzer.singleBeep(
-                      5000, 	// Frequency in hertz(HZ).  
-                      500 	// Duration of the beep in milliseconds(ms). 
-                      //done		// [Optional] Function to call when done.
-                      );
+    }
+    EasyBuzzer.update();
+  }
+
+  int roundsIn(){
+    int roundTime = activeOption.getStartTime1() + activeOption.getStartTime2();
+    return ceil( activeSecond / roundTime );
+  }
+
+  int secondThisRound() {
+    int roundTime = activeOption.getStartTime1() + activeOption.getStartTime2();
+    return activeSecond - ( (roundsIn()-1) * roundTime );
+  }
+
+  int secondThisInterval() {
+    int secondThisInterval = 0;
+    if ( secondThisRound() <= activeOption.getStartTime1() ) {
+      secondThisInterval = secondThisRound();
+    }
+    else {
+      secondThisInterval = secondThisRound() - activeOption.getStartTime1() ;
+    }
+    return secondThisInterval;
+  }
+
+  int intervalsIn() {
+    int intervalsIn = 0;
+    if ( secondThisRound() <= activeOption.getStartTime1() ) {
+      intervalsIn = 2*(roundsIn()-1) + 1;
+    }
+    else {
+      intervalsIn = roundsIn() * 2;
+    }
+    return intervalsIn;
+  }
+
+  int roundsLeft() {
+    return 1 + activeOption.getNrOfRounds() - roundsIn();
+  }
+
+  int intervalsLeft() {
+    return 1 + activeOption.getNrOfRounds()*2 - intervalsIn();
+  }
+
+  int secondsLeftThisInterval() {
+    int secondsLeftThisInterval = 0;
+    if ( intervalsIn() %2 ) {
+      secondsLeftThisInterval = activeOption.getStartTime1() - secondThisInterval();
+    }
+    else {
+      secondsLeftThisInterval = activeOption.getStartTime2() - secondThisInterval();
+    }
+    return secondsLeftThisInterval;
+  }
+  
+public:
+  TimerClock(MenuOption &optionToActivate, DisplayControl &displayLedToAttach) :
+    activeOption(optionToActivate),
+    displayLed(displayLedToAttach)
+  {
+  }
+
+  void startClock() {
+    // public to skip precountdown
+    Serial.print("startClock: from ");
+    Serial.print(state);
+    Serial.print(" to ");
+    switch (state) {
+    case PRECOUNTDOWN:
+      if(activeOption.getCountDirectionUp()){
+        state = RUN_UP;
+      }
+      else{
+        state = RUN_DOWN;
+      }
+      activeSecond = 1;
+      startTimeMs = millis();
+      displayLed.turnColonOn(true);
+      break;
+    case RUN_UP:
+    case RUN_DOWN:
+      state = PAUSE;
+      displayLed.turnColonOn(false); //TODO: Change to something else?
+      break;
+    case PAUSE:
+      if(activeOption.getCountDirectionUp()){
+        state = RUN_UP;
+      }
+      else{
+        state = RUN_DOWN;
+      }
+      startTimeMs = millis()-(activeSecond*1000);
+      break;
+    case TIMER_END:
+      activeSecond = 1;
+      displayLed.turnColonOn(false);
+      startTimeMs = millis();
+      state = PRECOUNTDOWN;
+      break;
+    }
+    Serial.println(state);
+  }
+
+  void setup(MenuOption &optionToAttach) {
+    activeOption = optionToAttach;
+    state = TIMER_END;
+  }
+
+  void loop() {
+    if ( (millis() - startTimeMs) >= (unsigned long)activeSecond*1000 ) {
+      switch (state) {
+      case PRECOUNTDOWN :
+        // Count down 10-0
+        sprintf(displayText,"    %02d", 11-activeSecond);
+        // Beep short short long on last 3 seconds
+        activeSecond++;
+        if (activeSecond - 12 >= 0) {
+          startClock();
+        } 
+          Serial.print("Timer Loop PRECOUNTDOWN:");
+          Serial.print(activeSecond);
+          Serial.print(" roundsLeft: ");
+          Serial.println(roundsLeft());
+        break;
+      case RUN_UP:
+        if ( activeOption.getNrOfRounds() > 0){
+          sprintf(displayText,"%2d%02d%02d", roundsIn(), secondThisInterval()/60, secondThisInterval()%60);
         }
-      }
-      EasyBuzzer.update();
-    }
-
-    void preCountDown() {
-      // Count down 10-0
-      sprintf(displayText,"    %02d", 11-activeSecond);
-      // Beep short short long on last 3 seconds
-      displayLed.displayCharArray(displayText);
-      beepAtTheEnd();
-    }
-
-    void countDown() {
-      sprintf(displayText,"%02d%02d%02d", roundsLeft(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
-    }
-
-    void countUp() {
-      //Todo: intervals support
-      if ((activeSecond)/60 < 60) { //first hour, show "UP"
-        sprintf(displayText,"%2s%02d%02d", activeOption.getDisplayName(), (activeSecond)/60, (activeSecond)%60);
-      }
-      else { //passed the hour
-        sprintf(displayText,"%02d%02d%02d", (activeSecond)/3600, ((activeSecond)/60)%60, (activeSecond)%60);
-      }
-    }
-    
-  public:
-
-    TimerClock(MenuOption &optionToActivate, DisplayControl &displayLedToAttach) :
-      activeOption(optionToActivate),
-      displayLed(displayLedToAttach)
-    {
-    }
-
-    int roundsLeft(){
-      int roundTime = (activeOption.getStartTime1() + activeOption.getStartTime2());
-
-      if (activeOption.hasRounds()){
-        return ceil(((activeOption.getNrOfRounds()/2 * roundTime) - activeSecond) / roundTime);
-      }
-      else {
-        return ceil(((activeOption.getNrOfRounds() * roundTime) - activeSecond) / roundTime);
-      }
-    }
-
-    int secondsLeftThisInterval(){
-      if (roundsLeft() == 0) return 0; //timer end show 0;
-      if (roundsLeft()%2) { //Interval 1
-        return activeOption.getStartTime1()-(activeSecond % activeOption.getStartTime1());
-      }
-      else { //Interval 2
-        return activeOption.getStartTime2()-(activeSecond % activeOption.getStartTime1());
-      }
-    }
-
-    void startClock() {
-      // public to skip precountdown
-      switch (state) {
-          case PRECOUNTDOWN:
-            state = RUNNING;
-            activeSecond = 1;
-            startTimeMs = millis();
-            displayLed.turnColonOn(true);
-            break;
-          case RUNNING:
-            //activeSecond = 0;
-            state = STOPPED;
-            displayLed.turnColonOn(true);
-            break;
-          case STOPPED:
-            state = PRECOUNTDOWN;
-            activeSecond = 1;
-            startTimeMs = millis();
-            displayLed.turnColonOn(false);
-            break;
-      }
-    }
-
-    bool timerRunning(){
-      return state ? true : false;
-    }
-
-    void setup(MenuOption &optionToAttach) {
-      activeOption = optionToAttach;
-      state = STOPPED;
-    }
-
-    void loop() {
-      switch (state) {
-        case PRECOUNTDOWN:
-          if ( (millis() - startTimeMs) >= activeSecond*1000 ) {
-            preCountDown();
-            if (activeSecond - 11 == 0) {
-              startClock();
-            }
-            activeSecond++;
+        else {
+          if (((activeSecond)/60) < 60) { //first hour, show "UP"
+          sprintf(displayText,"%2s%02d%02d", activeOption.getDisplayName(), secondThisInterval()/60, secondThisInterval()%60);
           }
-          break;
-        case RUNNING:
-          if ( (millis() - startTimeMs) >= activeSecond*1000 ) {
-            if (activeOption.getCountDirectionUp()) {
-              countUp();
-            }
-            else {
-              countDown();
-            }
-            if (roundsLeft() == 0){
-              state = STOPPED;
-            }
-            activeSecond++;
+          else { //passed the hour
+            sprintf(displayText,"%02d%02d%02d", secondThisInterval()/3600, (secondThisInterval()/60)%60, secondThisInterval()%60);
           }
-          break;
-        case STOPPED:
-          // Display Reset mode
-          if( activeOption.getCountDirectionUp() ) {
-            sprintf(displayText,"%2s%02d%02d", activeOption.getDisplayName(), (activeSecond)/60, (activeSecond)%60);
-          }
-          else {
-            sprintf(displayText,"%02d%02d%02d", roundsLeft(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
-          }
-          break; 
+        } 
+        if (roundsLeft() <= 0){
+          state = TIMER_END;
+        }
+          Serial.print("Timer Loop RUN_UP: ");
+          Serial.print(activeSecond);
+          Serial.print(" roundsIn: ");
+          Serial.println(roundsIn());
+
+        activeSecond++;
+        break;
+      case RUN_DOWN:
+        sprintf(displayText,"%02d%02d%02d", roundsLeft(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
+        if (roundsLeft() <= 0){
+          state = TIMER_END;
+        }
+        Serial.print("Timer Loop RUN_DOWN: ");
+        Serial.print(secondsLeftThisInterval());
+        Serial.print(" roundsLeft: ");
+        Serial.println(roundsLeft());
+        Serial.print(" secondsleft: ");
+        Serial.println(secondsLeftThisInterval());
+        activeSecond++;
+        break;
+      case PAUSE:
+        // TODO Blink Colon ?
+        //Stop Clock
+        // if( activeOption.getCountDirectionUp() ) {
+        //   sprintf(displayText,"%2s%02d%02d", activeOption.getDisplayName(), (int)(activeSecond)/60, (int)(activeSecond)%60);
+        // }
+        // else {
+        //   sprintf(displayText,"%02d%02d%02d", roundsLeft(), (int)secondsLeftThisInterval()/60, (int)secondsLeftThisInterval()%60);
+        // }
+        break; 
+      case TIMER_END:
+        break;
       }
-      //displayText on display
-      displayLed.displayCharArray(displayText);
-      beepAtTheEnd();
     }
+    //displayText on display
+    displayLed.displayCharArray(displayText);
+    beepAtTheEnd();
+  }
 };
 
 #endif

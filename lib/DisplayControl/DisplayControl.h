@@ -34,8 +34,13 @@ class DisplayControl: public LedControl {
       
     }
 
+    char* getText(){
+      return oldText;
+    }
+
     void displayCharArray(char *text){
       if (strcmp(oldText, text) != 0){
+
         for( int i=0; i<6; i++){
           setChar(0, i, text[i], false);
         }

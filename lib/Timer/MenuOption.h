@@ -33,42 +33,35 @@ class MenuOption {
     }
     
     int getNrOfRounds(){
-      if ( startTimeInterval2Sec != 0 ){
-        return nrOfRounds*2;
-      }
-      else {
-        return nrOfRounds ? nrOfRounds : 1;
-      }
+      return nrOfRounds;
     }
     
     bool getCountDirectionUp(){
       return countDirectionUp;
     }
-    bool hasRounds(){
-      return nrOfRounds ? true: false;
-    }
-    bool hasInterval(){
-      return includesInterval;
-    }
   
     void changeRounds(int change){
       // do not add rounds if it never had
-      if (nrOfRounds > 0 && nrOfRounds <= 99) {
+      if (nrOfRounds > 0){
         nrOfRounds += change;
+        if (nrOfRounds < 1) { nrOfRounds = 1;}
+        if (nrOfRounds > 99) { nrOfRounds = 99; }
       }
     }
    
     void changeTimeInterval(int interval, int changeSec){
       switch (interval){
-        case 1:
-          startTimeInterval1Sec += changeSec;
-          break;
-        case 2:
-          startTimeInterval2Sec += changeSec;
-          break; 
+      case 1:
+        startTimeInterval1Sec += changeSec;
+        if (startTimeInterval1Sec < 0){ startTimeInterval1Sec = 0; }
+        if (startTimeInterval1Sec > 3600){ startTimeInterval1Sec = 3600; }
+        break;
+      case 2:
+        startTimeInterval2Sec += changeSec;
+        if (startTimeInterval2Sec < 0){ startTimeInterval2Sec = 0; }
+        if (startTimeInterval2Sec > 3600){ startTimeInterval2Sec = 3600; }
+        break; 
       }
-      startTimeInterval1Sec += changeSec;
-      //todo: Check for boundaries
     }
 };
 
