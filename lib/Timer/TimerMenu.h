@@ -67,11 +67,12 @@ private:
     Serial.print("changeTimerMode: from ");
     Serial.print(activeMenu);
     Serial.print(" to ");
-    activeMenu = (activeMenu+changes)%(sizeof(menuOptions)/sizeof(MenuOption));
-    // changeDigit = MINUTE_TENS;
+    activeMenu = ( activeMenu+changes ) % ( sizeof(menuOptions)/sizeof(MenuOption) );
     changeDigit = MINUTES;
     menuMode = MENUSTART;
-    Serial.println(activeMenu);
+    Serial.print(activeMenu);
+    Serial.print(" name: ");
+    Serial.println(menuOptions[activeMenu].getDisplayName());
   }
 
   void incrementIntervalRounds(){
@@ -129,7 +130,6 @@ public:
   
   void setup() {
     activeMenu = 0;
-    // changeDigit = MINUTE_TENS;
     changeDigit = MINUTES;
     menuMode = MENUSTART;
   }
@@ -151,14 +151,14 @@ public:
   // To be called by Power/Start Button short press
   //Sequence: Timer <-> Start <-> int1, int2, rnds
   void startTheTimer(){
-    Serial.print("StartTheTimer: from ");
-    Serial.print(menuMode);
-    Serial.print(" to ");
+    // Serial.print("StartTheTimer: from ");
+    // Serial.print(menuMode);
+    // Serial.print(" to ");
     switch (menuMode) {
     case MENUSTART:
       activeTimer.setup(menuOptions[activeMenu]);
       activeTimer.startClock();
-      
+
       menuMode = TIMER_RUNNING;
       break;
     case INTERVAL1:
@@ -170,7 +170,7 @@ public:
       activeTimer.startClock();
       break;
     }
-    Serial.println(menuMode);
+    //Serial.println(menuMode);
   }
   
   void advanceMenu(){

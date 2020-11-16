@@ -53,7 +53,7 @@ class MenuOption {
       switch (interval){
       case 1:
         startTimeInterval1Sec += changeSec;
-        if (startTimeInterval1Sec < 0){ startTimeInterval1Sec = 0; }
+        if (startTimeInterval1Sec < 1){ startTimeInterval1Sec = 1; }
         if (startTimeInterval1Sec > 3600){ startTimeInterval1Sec = 3600; }
         break;
       case 2:

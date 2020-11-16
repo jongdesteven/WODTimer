@@ -22,23 +22,32 @@ class TimerClock {
 //Todo: Add reference to display
 private:
   void beepAtTheEnd() {
-    if (secondsLeftThisInterval() == 0) {
-      EasyBuzzer.singleBeep(
+    if (state == PRECOUNTDOWN ){
+      if (activeSecond == 10){
+        EasyBuzzer.singleBeep(
                     5000, 	// Frequency in hertz(HZ).  
                     1000 	// Duration of the beep in milliseconds(ms). 
                     //done		// [Optional] Function to call when done.
                     );
-    }
-    else {
-      if (state == PRECOUNTDOWN && secondsLeftThisInterval() < 4){
+        Serial.println("Beeeeep!");
+      }
+      else if (activeSecond >= 7){
         EasyBuzzer.singleBeep(
                     5000, 	// Frequency in hertz(HZ).  
                     500 	// Duration of the beep in milliseconds(ms). 
                     //done		// [Optional] Function to call when done.
                     );
+        Serial.println("Beep!");
       }
     }
-    EasyBuzzer.update();
+    else if (secondsLeftThisInterval() == 0) {
+      EasyBuzzer.singleBeep(
+                    5000, 	// Frequency in hertz(HZ).  
+                    1000 	// Duration of the beep in milliseconds(ms). 
+                    //done		// [Optional] Function to call when done.
+                    );
+      Serial.println("Beeeeep!");
+    }
   }
 
   int roundsIn(){
@@ -141,7 +150,7 @@ public:
       startTimeMs = millis()-(activeSecond*1000);
       break;
     case TIMER_END:
-      activeSecond = 1;
+      activeSecond = 0;
       displayLed.turnColonOn(false);
       startTimeMs = millis();
       state = PRECOUNTDOWN;
@@ -152,6 +161,9 @@ public:
 
   void setup(MenuOption &optionToAttach) {
     activeOption = optionToAttach;
+    Serial.print(" Setup clock: ");
+    Serial.println(activeOption.getDisplayName());
+    sprintf(displayText, "      ");
     state = TIMER_END;
   }
 
@@ -160,69 +172,60 @@ public:
       switch (state) {
       case PRECOUNTDOWN :
         // Count down 10-0
-        sprintf(displayText,"    %02d", 11-activeSecond);
-        // Beep short short long on last 3 seconds
-        activeSecond++;
-        if (activeSecond - 12 >= 0) {
-          startClock();
-        } 
-          Serial.print("Timer Loop PRECOUNTDOWN:");
-          Serial.print(activeSecond);
-          Serial.print(" roundsLeft: ");
-          Serial.println(roundsLeft());
-        break;
-      case RUN_UP:
-        if ( activeOption.getNrOfRounds() > 0){
-          sprintf(displayText,"%2d%02d%02d", roundsIn(), secondThisInterval()/60, secondThisInterval()%60);
+        if (activeSecond <= 10) {
+          sprintf(displayText,"    %02d", 10-activeSecond);
+          // Beep short short long on last 3 seconds
+          beepAtTheEnd();
+          activeSecond++;
         }
         else {
-          if (((activeSecond)/60) < 60) { //first hour, show "UP"
-          sprintf(displayText,"%2s%02d%02d", activeOption.getDisplayName(), secondThisInterval()/60, secondThisInterval()%60);
+          startClock();
+        }
+        break;
+      case RUN_UP:
+        if (roundsLeft() > 0){
+          if ( activeOption.getNrOfRounds() > 0){
+            sprintf(displayText,"%2d%02d%02d", roundsIn(), secondThisInterval()/60, secondThisInterval()%60);
           }
-          else { //passed the hour
-            sprintf(displayText,"%02d%02d%02d", secondThisInterval()/3600, (secondThisInterval()/60)%60, secondThisInterval()%60);
-          }
-        } 
-        if (roundsLeft() <= 0){
+          else {
+            if (((activeSecond)/60) < 60) { //first hour, show "UP"
+            sprintf(displayText,"%2s%02d%02d", activeOption.getDisplayName(), secondThisInterval()/60, secondThisInterval()%60);
+            }
+            else { //passed the hour
+              sprintf(displayText,"%02d%02d%02d", secondThisInterval()/3600, (secondThisInterval()/60)%60, secondThisInterval()%60);
+            }
+          } 
+          beepAtTheEnd();
+          activeSecond++;
+        }
+        else {
           state = TIMER_END;
         }
-          Serial.print("Timer Loop RUN_UP: ");
-          Serial.print(activeSecond);
-          Serial.print(" roundsIn: ");
-          Serial.println(roundsIn());
-
-        activeSecond++;
         break;
       case RUN_DOWN:
-        sprintf(displayText,"%02d%02d%02d", roundsLeft(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
-        if (roundsLeft() <= 0){
+        if (roundsLeft() > 0){
+          if (activeOption.getStartTime2() > 0) {
+            sprintf(displayText,"%02d%02d%02d", intervalsLeft(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
+          }
+          else {
+            sprintf(displayText,"%02d%02d%02d", roundsLeft(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
+          }
+          beepAtTheEnd();
+          activeSecond++;
+        }
+        else {
           state = TIMER_END;
         }
-        Serial.print("Timer Loop RUN_DOWN: ");
-        Serial.print(secondsLeftThisInterval());
-        Serial.print(" roundsLeft: ");
-        Serial.println(roundsLeft());
-        Serial.print(" secondsleft: ");
-        Serial.println(secondsLeftThisInterval());
-        activeSecond++;
         break;
       case PAUSE:
         // TODO Blink Colon ?
-        //Stop Clock
-        // if( activeOption.getCountDirectionUp() ) {
-        //   sprintf(displayText,"%2s%02d%02d", activeOption.getDisplayName(), (int)(activeSecond)/60, (int)(activeSecond)%60);
-        // }
-        // else {
-        //   sprintf(displayText,"%02d%02d%02d", roundsLeft(), (int)secondsLeftThisInterval()/60, (int)secondsLeftThisInterval()%60);
-        // }
         break; 
       case TIMER_END:
         break;
       }
     }
-    //displayText on display
     displayLed.displayCharArray(displayText);
-    beepAtTheEnd();
+    EasyBuzzer.update();
   }
 };
 
