@@ -74,11 +74,21 @@ private:
   }
 
   int roundsLeft() {
-    return 1 + activeOption.getNrOfRounds() - roundsIn();
+    int nrOfRounds = activeOption.getNrOfRounds();
+    if (nrOfRounds == 0){
+        nrOfRounds = 1;
+    }
+    
+    return 1 + nrOfRounds - roundsIn();
+    
   }
 
   int intervalsLeft() {
-    return 1 + activeOption.getNrOfRounds()*2 - intervalsIn();
+    int nrOfRounds = activeOption.getNrOfRounds();
+    if (nrOfRounds == 0){
+        nrOfRounds = 1;
+    }
+    return 1 + nrOfRounds*2 - intervalsIn();
   }
 
   int secondsLeftThisInterval() {
