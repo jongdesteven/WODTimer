@@ -43,17 +43,17 @@ private:
 
   int roundsIn(){
     int roundTime = activeOption.getStartTime1() + activeOption.getStartTime2();
-    return ceil( activeSecond / roundTime );
+    return ceil( (double)activeSecond / (double)roundTime );
   }
 
   int secondThisRound() {
     int roundTime = activeOption.getStartTime1() + activeOption.getStartTime2();
-    return activeSecond - ( (roundsIn()-1) * roundTime );
+    return activeSecond - 1 - ( (roundsIn()-1) * roundTime );
   }
 
   int secondThisInterval() {
     int secondThisInterval = 0;
-    if ( secondThisRound() <= activeOption.getStartTime1() ) {
+    if ( secondThisRound() < activeOption.getStartTime1() ) {
       secondThisInterval = secondThisRound();
     }
     else {
@@ -64,7 +64,7 @@ private:
 
   int intervalsIn() {
     int intervalsIn = 0;
-    if ( secondThisRound() <= activeOption.getStartTime1() ) {
+    if ( secondThisRound() < activeOption.getStartTime1() ) {
       intervalsIn = 2*(roundsIn()-1) + 1;
     }
     else {
@@ -84,10 +84,10 @@ private:
   int secondsLeftThisInterval() {
     int secondsLeftThisInterval = 0;
     if ( intervalsIn() %2 ) {
-      secondsLeftThisInterval = activeOption.getStartTime1() - secondThisInterval();
+      secondsLeftThisInterval = activeOption.getStartTime1() - secondThisInterval() - 1;
     }
     else {
-      secondsLeftThisInterval = activeOption.getStartTime2() - secondThisInterval();
+      secondsLeftThisInterval = activeOption.getStartTime2() - secondThisInterval() - 1;
     }
     return secondsLeftThisInterval;
   }
