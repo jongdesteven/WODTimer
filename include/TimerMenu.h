@@ -31,7 +31,7 @@ private:
                               MenuOption("UP", 45, 0, 2, true, false),  
                               MenuOption("dn", 10*60, 0, 0, false, false), 
                               MenuOption("nt", 60, 30, 5, false, true)};
-  TimerClock activeTimer = TimerClock(menuOptions[0], displayLed);
+  TimerClock activeTimer = TimerClock(displayLed, &menuOptions[0]);
   
   void displayMenu();
   void changeTimerMode(int changes);

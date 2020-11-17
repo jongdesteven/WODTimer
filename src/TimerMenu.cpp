@@ -1,6 +1,5 @@
 #include "TimerMenu.h"
 
-
 void TimerMenu::displayMenu(){
   //ToDo: Blinking changeDigit
   switch (menuMode){
@@ -30,16 +29,9 @@ void TimerMenu::displayMenu(){
 
 // To be called from + / - button
 void TimerMenu::changeTimerMode(int changes) {
-  //cycle between MenuOptions
-  Serial.print("changeTimerMode: from ");
-  Serial.print(activeMenu);
-  Serial.print(" to ");
   activeMenu = ( activeMenu+changes ) % ( sizeof(menuOptions)/sizeof(MenuOption) );
   changeDigit = MINUTES;
   menuMode = MENUSTART;
-  Serial.print(activeMenu);
-  Serial.print(" name: ");
-  Serial.println(menuOptions[activeMenu].getDisplayName());
 }
 
 void TimerMenu::incrementIntervalRounds(){
@@ -116,12 +108,9 @@ void TimerMenu::loop() {
 // To be called by Power/Start Button short press
 //Sequence: Timer <-> Start <-> int1, int2, rnds
 void TimerMenu::startTheTimer(){
-  // Serial.print("StartTheTimer: from ");
-  // Serial.print(menuMode);
-  // Serial.print(" to ");
   switch (menuMode) {
   case MENUSTART:
-    activeTimer.setup(menuOptions[activeMenu]);
+    activeTimer.setup(&menuOptions[activeMenu]);
     activeTimer.startClock();
 
     menuMode = TIMER_RUNNING;
@@ -139,10 +128,6 @@ void TimerMenu::startTheTimer(){
 }
 
 void TimerMenu::advanceMenu(){
-  Serial.print("advanceMenu from: menuMode: ");
-  Serial.print(menuMode);
-  Serial.print(" changedigit: ");
-  Serial.println(changeDigit);
   switch (menuMode){
   case TIMER_RUNNING:
     menuMode = MENUSTART;
@@ -183,10 +168,6 @@ void TimerMenu::advanceMenu(){
     menuMode = INTERVAL1;
     break;
   }
-  Serial.print("advanceMenu to: menuMode: ");
-  Serial.print(menuMode);
-  Serial.print(" changedigit: ");
-  Serial.println(changeDigit);
 }
 
 // To be called by button +
