@@ -119,8 +119,8 @@ void setup() {
   // menuBtn.setup();
   // minBtn.setup();
   // plusBtn.setup();
-   cfTimer.setup();
-  // ledDisplay.setup();
+  cfTimer.setup();
+  ledDisplay.setup();
 
 }
 
@@ -133,22 +133,6 @@ void loop() {
   if (strcmp(oldText2, ledDisplay.getText()) != 0){
     client.publish("wodtimer/display", ledDisplay.getText());
     strcpy(oldText2, ledDisplay.getText());
-    Serial.print("Display: |");
-    //Serial.print(ledDisplay.getText());
-    //Serial.println("");
-    for (int i = 0; i < 2; i++) {
-      Serial.print((char)oldText2[i]);
-    }
-    Serial.print(" ");
-    for (int i = 2; i < 4; i++) {
-      Serial.print((char)oldText2[i]);
-    }
-    Serial.print(":");
-    for (int i = 4; i < 6; i++) {
-      Serial.print((char)oldText2[i]);
-    }
-    Serial.println("|");
-
   }
   //MQTT Debug end
 
@@ -156,6 +140,6 @@ void loop() {
   // menuBtn.loop();
   // minBtn.loop();
   // plusBtn.loop();
-   cfTimer.loop();
-  // ledDisplay.loop();
+  cfTimer.loop();
+  ledDisplay.loop();
 }

@@ -2,6 +2,7 @@
 
 void TimerMenu::displayMenu(){
   //ToDo: Blinking changeDigit
+  int blinkingSegment = 0;
   switch (menuMode){
   case MENUSTART:
     if ( menuOptions[activeMenu].getNrOfRounds() > 0 ) {
@@ -9,21 +10,27 @@ void TimerMenu::displayMenu(){
     } else {
       sprintf(displayText,"%2s    ", menuOptions[activeMenu].getDisplayName());
     }
+    blinkingSegment = 0;
     break;
   case INTERVAL1:
     sprintf(displayText,"1 %02d%02d", menuOptions[activeMenu].getStartTime1()/60, menuOptions[activeMenu].getStartTime1()%60);
+    if (changeDigit == MINUTES) blinkingSegment = 0b001100;
+    else if (changeDigit == SECONDS) blinkingSegment = 0b000011;
     break;
   case INTERVAL2:
     sprintf(displayText,"2 %02d%02d", menuOptions[activeMenu].getStartTime2()/60, menuOptions[activeMenu].getStartTime2()%60);
+    if (changeDigit == MINUTES) blinkingSegment = 0b001100;
+    else if (changeDigit == SECONDS) blinkingSegment = 0b000011;
     break;
   case NR_OF_ROUNDS:
     sprintf(displayText,"rd  %02d", menuOptions[activeMenu].getNrOfRounds());
+    blinkingSegment = 0b000011;
     break;
   case TIMER_RUNNING:
     //display is controlled elsewhere
     break;
   }
-  displayLed.displayCharArray(displayText);
+  displayLed.displayCharArray(displayText, blinkingSegment);
   displayLed.turnColonOn(false);
 }
 
@@ -124,7 +131,7 @@ void TimerMenu::startTheTimer(){
     activeTimer.startClock();
     break;
   }
-  //Serial.println(menuMode);
+  //displayLed.forceDisplayUpdate();
 }
 
 void TimerMenu::advanceMenu(){
@@ -168,6 +175,7 @@ void TimerMenu::advanceMenu(){
     menuMode = INTERVAL1;
     break;
   }
+  //displayLed.forceDisplayUpdate();
 }
 
 // To be called by button +
@@ -184,6 +192,7 @@ void TimerMenu::incrementOption() {
   case TIMER_RUNNING:
     break;
   }
+  displayLed.forceDisplayUpdate();
 }
 
 // To be called by button -
@@ -200,4 +209,5 @@ void TimerMenu::decrementOption() {
   case TIMER_RUNNING:
     break;
   }
+  displayLed.forceDisplayUpdate();
 }

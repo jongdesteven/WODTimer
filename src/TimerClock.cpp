@@ -106,7 +106,7 @@ void TimerClock::startClock() {
       state = RUN_DOWN;
     }
     activeSecond = 1;
-    startTimeMs = millis();
+    startTimeMs = millis()-1000;
     displayLed.turnColonOn(true);
     break;
   case RUN_UP:
@@ -130,7 +130,6 @@ void TimerClock::startClock() {
     state = PRECOUNTDOWN;
     break;
   }
-  Serial.println(state);
 }
 
 void TimerClock::setup(MenuOption *optionToAttach) {
@@ -144,13 +143,14 @@ void TimerClock::loop() {
     switch (state) {
     case PRECOUNTDOWN :
       // Count down 10-0
-      if (activeSecond <= 10) {
+      if (activeSecond <= 9) {
         sprintf(displayText,"    %02d", 10-activeSecond);
         // Beep short short long on last 3 seconds
         beepAtTheEnd();
         activeSecond++;
       }
       else {
+        beepAtTheEnd();
         startClock();
       }
       break;
@@ -161,7 +161,7 @@ void TimerClock::loop() {
         }
         else {
           if (((activeSecond)/60) < 60) { //first hour, show "UP"
-          sprintf(displayText,"%2s%02d%02d", activeOption->getDisplayName(), secondThisInterval()/60, secondThisInterval()%60);
+            sprintf(displayText,"%2s%02d%02d", activeOption->getDisplayName(), secondThisInterval()/60, secondThisInterval()%60);
           }
           else { //passed the hour
             sprintf(displayText,"%02d%02d%02d", secondThisInterval()/3600, (secondThisInterval()/60)%60, secondThisInterval()%60);
@@ -196,6 +196,8 @@ void TimerClock::loop() {
       break;
     }
   }
-  displayLed.displayCharArray(displayText);
+
+  if (state == PAUSE) displayLed.displayCharArray(displayText, 0b001111);
+  else displayLed.displayCharArray(displayText);
   EasyBuzzer.update();
 }

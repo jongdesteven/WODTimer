@@ -19,12 +19,12 @@ private:
     TIMER_RUNNING = 4
   }menuMode;
   enum ChangeDigit {
-    MINUTE_TENS = 1,
-    MINUTES = 2,
-    SECOND_TENS = 3,
-    SECONDS = 4,
-    ROUNDS_TENS = 5,
-    ROUNDS = 6
+    MINUTE_TENS = 0,
+    MINUTES = 1,
+    SECOND_TENS = 2,
+    SECONDS = 3,
+    ROUNDS_TENS = 4,
+    ROUNDS = 5
   }changeDigit;
   //const char* name, int time1, int time2, int rounds, bool countUp, bool isInterval
   MenuOption menuOptions[4] = {MenuOption("UP", 356400, 0, 0, true, false),
