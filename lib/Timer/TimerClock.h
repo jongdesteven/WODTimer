@@ -162,7 +162,7 @@ public:
   void setup(MenuOption &optionToAttach) {
     activeOption = optionToAttach;
     Serial.print(" Setup clock: ");
-    Serial.println(activeOption.getDisplayName());
+    Serial.println( (unsigned int)&optionToAttach, HEX);
     sprintf(displayText, "      ");
     state = TIMER_END;
   }
