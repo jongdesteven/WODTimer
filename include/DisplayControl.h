@@ -2,7 +2,7 @@
 #define DISPLAYCONTROL_H
 
 #include "Arduino.h"
-#include "LedControl.h"
+#include "LedControl_HW_SPI.h"
 
 class DisplayControl: public LedControl_HW_SPI {
   
@@ -17,7 +17,7 @@ private:
   bool colonOn;
   
   public:
-    DisplayControl(int load_csPin, byte colon);
+    DisplayControl(const byte load_csPin, const byte colon);
     void turnColonOn(bool isOn);
     char* getText();
     void displayCharArray(char *text);

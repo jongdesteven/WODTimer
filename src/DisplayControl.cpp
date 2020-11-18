@@ -1,8 +1,8 @@
 #include "DisplayControl.h"
 
-DisplayControl::DisplayControl(int load_csPin, byte colon, unsigned long spiSpeedMax) :
-  csPin(load_csPin),
-  colonPin(colon)
+DisplayControl::DisplayControl(const byte load_csPin, const byte colon) :
+  colonPin(colon),
+  csPin(load_csPin)
   {
   }
 

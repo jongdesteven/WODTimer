@@ -7,6 +7,11 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
+//needed for WifiManager Library
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+#include <WiFiManager.h>         //https://github.com/tzapu/WiFiManager
+
 const char* ssid = "De Jong Airport";
 const char* password = "Appeltaart";
 const char* mqtt_server = "tinysrv";
@@ -14,7 +19,7 @@ const char* mqtt_server = "tinysrv";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-DisplayControl ledDisplay(13, 14, 15, 1);
+DisplayControl ledDisplay(15, 1);
 TimerMenu cfTimer(ledDisplay);
 PowerStartControlButton pwrBtn(4, cfTimer);
 MenuControlButton menuBtn(12, cfTimer);
