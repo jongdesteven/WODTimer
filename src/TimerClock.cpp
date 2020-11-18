@@ -179,8 +179,11 @@ void TimerClock::loop() {
         if (activeOption->getStartTime2() > 0) {
           sprintf(displayText,"%02d%02d%02d", intervalsLeft(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
         }
-        else {
+        else if ( activeOption->getNrOfRounds() > 0){
           sprintf(displayText,"%02d%02d%02d", roundsLeft(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
+        }
+        else {
+          sprintf(displayText,"%2s%02d%02d", activeOption->getDisplayName(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
         }
         beepAtTheEnd();
         activeSecond++;

@@ -12,8 +12,6 @@
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>         //https://github.com/tzapu/WiFiManager
 
-const char* ssid = "De Jong Airport";
-const char* password = "Appeltaart";
 const char* mqtt_server = "tinysrv";
 
 WiFiClient espClient;
@@ -25,26 +23,10 @@ TimerMenu cfTimer(ledDisplay);
 PowerStartControlButton pwrBtn(4, cfTimer);
 MenuControlButton menuBtn(12, cfTimer);
 MinusButton minBtn(5, cfTimer);
-PlusButton plusBtn(0, cfTimer);
+PlusButton plusBtn(0, cfTimer); 
 char oldText2[6];
 
-// MQTT start
-
 void setup_wifi() {
-  delay(10);
-  // We start by connecting to a WiFi network
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-
- // WiFi.mode(WIFI_STA);
- // WiFi.begin(ssid, password);
- // while (WiFi.status() != WL_CONNECTED) {
- //   delay(500);
- //   Serial.print(".");
- // }
- //  randomSeed(micros());
-  
   wifiManager.setConfigPortalBlocking(false);
 	if(wifiManager.autoConnect("WODTimer_AP")){
 		Serial.println("connected...:)");
@@ -56,19 +38,9 @@ void setup_wifi() {
 	else {
 		Serial.println("Configportal running");
 	}
-
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  // Serial.print("Message arrived [");
-  // Serial.print(topic);
-  // Serial.print("] ");
-  // for (int i = 0; i < length; i++) {
-  //   Serial.print((char)payload[i]);
-  // }
-  // Serial.println();
-
-  // Switch on the LED if an 1 was received as first character
   switch (atoi((char*)payload)){
   case 1:
     cfTimer.startTheTimer();
@@ -88,7 +60,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 }
 
-void reconnect() {
+void mqtt_reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
@@ -111,18 +83,25 @@ void reconnect() {
     }
   }
 }
-// MQTT End
 
+void sendMQTTStatus(){
+  if (WiFi.status() == WL_CONNECTED){
+    if (!client.connected()) {
+      mqtt_reconnect();
+    }
+    client.loop();
+    if (strcmp(oldText2, ledDisplay.getText()) != 0){
+      client.publish("wodtimer/display", ledDisplay.getText());
+      strcpy(oldText2, ledDisplay.getText());
+    }
+  }
+}
 
 void setup() {
-  // put your setup code here, to run once:
-  // MQTT Debug
   Serial.begin(115200);
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
-
-  //MQTT Debug end
 
   // pwrBtn.setup();
   // menuBtn.setup();
@@ -130,27 +109,15 @@ void setup() {
   // plusBtn.setup();
   cfTimer.setup();
   ledDisplay.setup();
-
 }
 
 void loop() {
-  //MQTT debug
-  if (!client.connected()) {
-    reconnect();
-  }
-  client.loop();
-  if (strcmp(oldText2, ledDisplay.getText()) != 0){
-    client.publish("wodtimer/display", ledDisplay.getText());
-    strcpy(oldText2, ledDisplay.getText());
-  }
-	
-	wifiManage.process();
-  //MQTT Debug end
-
+  wifiManager.process();
   // pwrBtn.loop();
   // menuBtn.loop();
   // minBtn.loop();
   // plusBtn.loop();
   cfTimer.loop();
   ledDisplay.loop();
+  sendMQTTStatus();
 }

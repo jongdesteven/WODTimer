@@ -44,12 +44,12 @@ void MenuOption::changeTimeInterval(int interval, int changeSec){
   case 1:
     startTimeInterval1Sec += changeSec;
     if (startTimeInterval1Sec < 1){ startTimeInterval1Sec = 1; }
-    if (startTimeInterval1Sec > 3600){ startTimeInterval1Sec = 3600; }
+    if (startTimeInterval1Sec > 3599){ startTimeInterval1Sec = 3599; }
     break;
   case 2:
     startTimeInterval2Sec += changeSec;
     if (startTimeInterval2Sec < 0){ startTimeInterval2Sec = 0; }
-    if (startTimeInterval2Sec > 3600){ startTimeInterval2Sec = 3600; }
+    if (startTimeInterval2Sec > 3599){ startTimeInterval2Sec = 3599; }
     break; 
   }
 }
