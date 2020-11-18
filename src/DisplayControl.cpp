@@ -1,24 +1,26 @@
 #include "DisplayControl.h"
 
-DisplayControl::DisplayControl(int dataIn, int clk, int load, byte colon) :
-  LedControl(dataIn, clk, load, 1),
+DisplayControl::DisplayControl(int load_csPin, byte colon, unsigned long spiSpeedMax) :
+  csPin(load_csPin),
   colonPin(colon)
   {
   }
 
 void DisplayControl::setup(){
-  // pinMode(colonPin, OUTPUT);
-  // digitalWrite(colonPin, LOW);
+  pinMode(colonPin, OUTPUT);
+  digitalWrite(colonPin, LOW);
+  
   sprintf(displayText, "------");
   displayRefresh = false;
   lastBlinkChangeMs = millis();
   blinkingSegmentOn = false;
   colonOn = false;
-  
-  // setScanLimit(0, 6);
-  // shutdown(0, false);
-  // setIntensity(0, 8); //0-15
-  // clearDisplay(0);
+
+  begin(csPin, 1, 10000000);
+  setScanLimit(0, 6);
+  shutdown(0, false);
+  setIntensity(0, 8); //0-15
+  clearDisplay(0);
 }
 
 void DisplayControl::turnColonOn(bool isOn){

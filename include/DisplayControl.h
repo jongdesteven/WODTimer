@@ -4,10 +4,11 @@
 #include "Arduino.h"
 #include "LedControl.h"
 
-class DisplayControl: public LedControl {
+class DisplayControl: public LedControl_HW_SPI {
   
 private:
   const byte colonPin;
+  const byte csPin;
   char displayText[6];
   bool displayRefresh;
   byte blinkingSegments;
@@ -16,7 +17,7 @@ private:
   bool colonOn;
   
   public:
-    DisplayControl(int dataIn, int clk, int load, byte colon);
+    DisplayControl(int load_csPin, byte colon);
     void turnColonOn(bool isOn);
     char* getText();
     void displayCharArray(char *text);
