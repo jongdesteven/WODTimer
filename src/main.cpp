@@ -18,6 +18,7 @@ const char* mqtt_server = "tinysrv";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
+WiFiManager wifiManager;
 
 DisplayControl ledDisplay(15, 1);
 TimerMenu cfTimer(ledDisplay);
@@ -30,27 +31,32 @@ char oldText2[6];
 // MQTT start
 
 void setup_wifi() {
-
   delay(10);
   // We start by connecting to a WiFi network
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
 
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
+ // WiFi.mode(WIFI_STA);
+ // WiFi.begin(ssid, password);
+ // while (WiFi.status() != WL_CONNECTED) {
+ //   delay(500);
+ //   Serial.print(".");
+ // }
+ //  randomSeed(micros());
+  
+  wifiManager.setConfigPortalBlocking(false);
+	if(wifiManager.autoConnect("WODTimer_AP")){
+		Serial.println("connected...:)");
+		Serial.println("");
+		Serial.println("WiFi connected");
+		Serial.println("IP address: ");
+		Serial.println(WiFi.localIP());
+	}
+	else {
+		Serial.println("Configportal running");
+	}
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  randomSeed(micros());
-
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -80,7 +86,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.print("Button: Invalid: ");
     Serial.println(atoi((char*)payload));
   }
-
 }
 
 void reconnect() {
@@ -106,7 +111,6 @@ void reconnect() {
     }
   }
 }
-
 // MQTT End
 
 
@@ -139,6 +143,8 @@ void loop() {
     client.publish("wodtimer/display", ledDisplay.getText());
     strcpy(oldText2, ledDisplay.getText());
   }
+	
+	wifiManage.process();
   //MQTT Debug end
 
   // pwrBtn.loop();
