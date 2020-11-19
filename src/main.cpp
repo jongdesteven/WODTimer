@@ -1,9 +1,13 @@
 #include <Arduino.h>
+#include "ssid_info.h"
 
-#include "buttons.h"
-#include "DisplayControl.h"
-#include "TimerMenu.h"
+// For ArduinoOTA
+#include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
 
+// For MQTT
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
@@ -12,6 +16,12 @@
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>         //https://github.com/tzapu/WiFiManager
 
+// Classes
+#include "buttons.h"
+#include "DisplayControl.h"
+#include "TimerMenu.h"
+
+char hostname[16];
 const char* mqtt_server = "tinysrv";
 
 WiFiClient espClient;
@@ -26,7 +36,7 @@ MinusButton minBtn(5, cfTimer);
 PlusButton plusBtn(0, cfTimer); 
 char oldText2[6];
 
-void setup_wifi() {
+void setup_wifiManager() {
   wifiManager.setConfigPortalBlocking(false);
 	if(wifiManager.autoConnect("WODTimer_AP")){
 		Serial.println("connected...:)");
@@ -38,6 +48,28 @@ void setup_wifi() {
 	else {
 		Serial.println("Configportal running");
 	}
+}
+
+void setup_wifi() {
+  delay(10);
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(SSID_INFO);
+
+  WiFi.hostname(hostname);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(SSID_INFO, SSID_INFO_PASS);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  
+  randomSeed(micros());
+  
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());	
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -61,8 +93,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 }
 
 void mqtt_reconnect() {
-  // Loop until we're reconnected
-  while (!client.connected()) {
+  if (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Create a random client ID
     String clientId = "ESP8266Client-";
@@ -84,6 +115,45 @@ void mqtt_reconnect() {
   }
 }
 
+void setup_OTA(){
+  ArduinoOTA.setHostname(hostname);
+
+  // No authentication by default
+  // ArduinoOTA.setPassword("admin");
+  
+ArduinoOTA.onStart([]() {
+	String type;
+	if (ArduinoOTA.getCommand() == U_FLASH) {
+		type = "sketch";
+	} else { // U_FS
+		type = "filesystem";
+	}
+	// NOTE: if updating FS this would be the place to unmount FS using FS.end()
+	Serial.println("Start updating " + type);
+  });
+  ArduinoOTA.onEnd([]() {
+    Serial.println("\nEnd");
+  });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) {
+      Serial.println("Auth Failed");
+    } else if (error == OTA_BEGIN_ERROR) {
+      Serial.println("Begin Failed");
+    } else if (error == OTA_CONNECT_ERROR) {
+      Serial.println("Connect Failed");
+    } else if (error == OTA_RECEIVE_ERROR) {
+      Serial.println("Receive Failed");
+    } else if (error == OTA_END_ERROR) {
+      Serial.println("End Failed");
+    }
+  });
+  ArduinoOTA.begin();
+}
+
 void sendMQTTStatus(){
   if (WiFi.status() == WL_CONNECTED){
     if (!client.connected()) {
@@ -98,8 +168,10 @@ void sendMQTTStatus(){
 }
 
 void setup() {
+  sprintf(hostname, "WODTimer-%06x", ESP.getChipId());
   Serial.begin(115200);
   setup_wifi();
+  setup_OTA();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 
@@ -108,11 +180,12 @@ void setup() {
   // minBtn.setup();
   // plusBtn.setup();
   cfTimer.setup();
-  ledDisplay.setup();
+  //ledDisplay.setup();
 }
 
 void loop() {
-  wifiManager.process();
+  //wifiManager.process();
+  ArduinoOTA.handle();  
   // pwrBtn.loop();
   // menuBtn.loop();
   // minBtn.loop();

@@ -16,11 +16,11 @@ void DisplayControl::setup(){
   blinkingSegmentOn = false;
   colonOn = false;
 
-  begin(csPin, 1, 10000000);
-  setScanLimit(0, 6);
-  shutdown(0, false);
-  setIntensity(0, 8); //0-15
-  clearDisplay(0);
+  //begin(csPin, 1, 10000000);
+  //setScanLimit(0, 6);
+  //shutdown(0, false);
+  //setIntensity(0, 8); //0-15
+  //clearDisplay(0);
 }
 
 void DisplayControl::turnColonOn(bool isOn){
@@ -53,7 +53,7 @@ void DisplayControl::forceDisplayUpdate(){
     setChar(0, i, displayText[i], false);
   }
   //Debug
-  Serial.print("Display: |");
+  Serial.print("frcd: |");
   for (int i = 0; i < 2; i++) {
     Serial.print((char)displayText[i]);
   }
@@ -71,7 +71,7 @@ void DisplayControl::forceDisplayUpdate(){
 
 void DisplayControl::loop(){
   if ( blinkingSegments > 0 && millis() - lastBlinkChangeMs >= 500){
-    Serial.print("Display: |");
+    Serial.print("Blnk: |");
     for( int i=0; i<6; i++){
       if ( blinkingSegmentOn && blinkingSegments & 0x01<<(5-i)  ){
         setChar(0, i, ' ', false);
@@ -89,6 +89,7 @@ void DisplayControl::loop(){
     lastBlinkChangeMs = millis();
   }
   else if (displayRefresh) {
+    Serial.print("Refr: |");
     for( int i=0; i<6; i++){
       setChar(0, i, displayText[i], false);
     }
