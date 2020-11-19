@@ -98,7 +98,7 @@ void DisplayControl::loop(){
     for (int i = 0; i < 2; i++) {
       Serial.print((char)displayText[i]);
     }
-    Serial.print(" ");
+   // Serial.print(" ");
     for (int i = 2; i < 4; i++) {
       Serial.print((char)displayText[i]);
     }

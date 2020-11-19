@@ -112,7 +112,7 @@ void TimerClock::startClock() {
   case RUN_UP:
   case RUN_DOWN:
     state = PAUSE;
-    displayLed.turnColonOn(false); //TODO: Change to something else?
+    //displayLed.turnColonOn(false); //TODO: Change to something else?
     break;
   case PAUSE:
     if(activeOption->getCountDirectionUp()){
