@@ -44,33 +44,39 @@ void DisplayControl::displayCharArray(char *text, byte segmentsToBlink){
   if (strcmp(displayText, text) != 0 || segmentsToBlink != blinkingSegments){
     strcpy(displayText, text);
     blinkingSegments = segmentsToBlink;
-    if (segmentsToBlink == 0) displayRefresh = true;
+    displayRefresh = true;
   }
 }
 
 void DisplayControl::forceDisplayUpdate(){
-  for( int i=0; i<6; i++){
-    setChar(0, i, displayText[i], false);
-  }
-  //Debug
-  Serial.print("frcd: |");
-  for (int i = 0; i < 2; i++) {
-    Serial.print((char)displayText[i]);
-  }
-  Serial.print(" ");
-  for (int i = 2; i < 4; i++) {
-    Serial.print((char)displayText[i]);
-  }
-  if (colonOn) Serial.print(":");
-  for (int i = 4; i < 6; i++) {
-    Serial.print((char)displayText[i]);
-  }
-  Serial.println("|");
-  //Debug end
+  displayRefresh = true;
 }
 
 void DisplayControl::loop(){
-  if ( blinkingSegments > 0 && millis() - lastBlinkChangeMs >= 500){
+  if (displayRefresh) {
+    Serial.print("Refr: |");
+    for( int i=0; i<6; i++){
+      setChar(0, i, displayText[i], false);
+    }
+
+    //Debug
+    for (int i = 0; i < 2; i++) {
+      Serial.print((char)displayText[i]);
+    }
+    for (int i = 2; i < 4; i++) {
+      Serial.print((char)displayText[i]);
+    }
+    if (colonOn) Serial.print(":");
+    else Serial.print(' ');
+    for (int i = 4; i < 6; i++) {
+      Serial.print((char)displayText[i]);
+    }
+    Serial.println("|");
+    //Debug end
+
+    displayRefresh = false;
+  }
+  else if ( blinkingSegments > 0 && millis() - lastBlinkChangeMs >= 500){
     Serial.print("Blnk: |");
     for( int i=0; i<6; i++){
       if ( blinkingSegmentOn && blinkingSegments & 0x01<<(5-i)  ){
@@ -88,28 +94,5 @@ void DisplayControl::loop(){
     blinkingSegmentOn = !blinkingSegmentOn;
     lastBlinkChangeMs = millis();
   }
-  else if (displayRefresh) {
-    Serial.print("Refr: |");
-    for( int i=0; i<6; i++){
-      setChar(0, i, displayText[i], false);
-    }
-
-    //Debug
-    for (int i = 0; i < 2; i++) {
-      Serial.print((char)displayText[i]);
-    }
-   // Serial.print(" ");
-    for (int i = 2; i < 4; i++) {
-      Serial.print((char)displayText[i]);
-    }
-    if (colonOn) Serial.print(":");
-    else Serial.print(' ');
-    for (int i = 4; i < 6; i++) {
-      Serial.print((char)displayText[i]);
-    }
-    Serial.println("|");
-    //Debug end
-
-    displayRefresh = false;
-  }
+  
 }

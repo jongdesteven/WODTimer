@@ -131,7 +131,6 @@ void TimerMenu::startTheTimer(){
     activeTimer.startClock();
     break;
   }
-  //displayLed.forceDisplayUpdate();
 }
 
 void TimerMenu::advanceMenu(){
@@ -175,7 +174,6 @@ void TimerMenu::advanceMenu(){
     menuMode = INTERVAL1;
     break;
   }
-  //displayLed.forceDisplayUpdate();
 }
 
 // To be called by button +
