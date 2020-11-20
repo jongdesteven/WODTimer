@@ -28,21 +28,20 @@ void MainMenu::loop(){
 
 void MainMenu::selectMenu(){
   switch(activeMenu){
-    case MENUSTART: // Does not exist
-    case TIMER:
-      activeMenu = menuModeDisplayed;
-      cfTimer.setup();
-      break;
-    case CONFIG:
-      break;
-    }
+  case MENUSTART: // Does not exist
+  case TIMER:
+    activeMenu = menuModeDisplayed;
+    cfTimer.setup();
+    break;
+  case CONFIG:
+    break;
+  }
 }
 
 void MainMenu::displayMenu(){
   switch(menuModeDisplayed){
   case MENUSTART: // Does not exist
   case TIMER:
-    //sprintf(displayText, "%6s", timerName);
     displayLed.displayCharArray((char*)timerName);
     break;
   case CONFIG:
