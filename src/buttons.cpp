@@ -36,7 +36,7 @@ PowerStartControlButton::PowerStartControlButton(byte attachTo, MainMenu &menuAt
 }
 void PowerStartControlButton::shortClick() {
   // Start Timer
-  menu.selectAction();
+  menu.powerAction();
 }
 void PowerStartControlButton::longClick() {
   // Wake from/Go To sleep

@@ -22,8 +22,9 @@ class MainMenu {
 public:
   MainMenu(DisplayControl &displayToAttach);
   
+  //Called by button actions
   void returnAction();
-  void selectAction();
+  void powerAction();
   void menuAction();
   void incrementAction();
   void decrementAction();
@@ -32,7 +33,9 @@ public:
   void loop();
 
 private:
+  //Select Current menu
   void selectMenu();
+  //Display the Main Menu
   void displayMenu();
 
 };

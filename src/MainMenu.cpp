@@ -27,13 +27,16 @@ void MainMenu::loop(){
 }
 
 void MainMenu::selectMenu(){
-  switch(activeMenu){
-  case MENUSTART: // Does not exist
+  switch(menuModeDisplayed){
+  case MENUSTART:
+    break;
   case TIMER:
     activeMenu = menuModeDisplayed;
     cfTimer.setup();
     break;
   case CONFIG:
+    activeMenu = menuModeDisplayed;
+    configMenu.setup();
     break;
   }
 }
@@ -42,10 +45,10 @@ void MainMenu::displayMenu(){
   switch(menuModeDisplayed){
   case MENUSTART: // Does not exist
   case TIMER:
-    displayLed.displayCharArray((char*)timerName);
+    displayLed.displayCharArray((char*)timerName, false);
     break;
   case CONFIG:
-    displayLed.displayCharArray((char*)configName);
+    displayLed.displayCharArray((char*)configName, false);
     break;
   }
 }
@@ -54,15 +57,15 @@ void MainMenu::returnAction(){
   activeMenu = MENUSTART;
 }
 
-void MainMenu::selectAction(){
+void MainMenu::powerAction(){
   switch(activeMenu){
   case MENUSTART:
-    selectMenu();
     break;
   case TIMER:
     cfTimer.startTheTimer();
     break;
   case CONFIG:
+    configMenu.powerAction();
     break;
   }
 }
@@ -70,11 +73,13 @@ void MainMenu::selectAction(){
 void MainMenu::menuAction(){
   switch(activeMenu){
   case MENUSTART:
+    selectMenu();
     break;
   case TIMER:
     cfTimer.advanceMenu();
     break;
   case CONFIG:
+    configMenu.menuAction();
     break;
   }
 }
@@ -96,6 +101,7 @@ void MainMenu::incrementAction(){
     cfTimer.incrementOption();
     break;
   case CONFIG:
+    configMenu.incrementAction();
     break;
   }
 }
@@ -117,6 +123,7 @@ switch(activeMenu){
     cfTimer.decrementOption();
     break;
   case CONFIG:
+    configMenu.decrementAction();
     break;
   }
 }

@@ -14,7 +14,7 @@ void DisplayControl::setup(){
   displayRefresh = false;
   lastBlinkChangeMs = millis();
   blinkingSegmentOn = false;
-  colonOn = false;
+  colonIsOn = false;
 
   //begin(csPin, 1, 10000000);
   //setScanLimit(0, 6);
@@ -25,14 +25,15 @@ void DisplayControl::setup(){
 
 void DisplayControl::turnColonOn(bool isOn){
   (isOn) ? digitalWrite(colonPin, HIGH) : digitalWrite(colonPin, LOW);
-  colonOn = isOn;
+  colonIsOn = isOn;
 }
 
 char* DisplayControl::getText(){
   return displayText;
 }
 
-void DisplayControl::displayCharArray(char *text){
+void DisplayControl::displayCharArray(char *text, bool colonOn){
+  colonIsOn = colonOn;
   if (strcmp(displayText, text) != 0){
     strcpy(displayText, text);
     displayRefresh = true;
@@ -40,7 +41,8 @@ void DisplayControl::displayCharArray(char *text){
   }
 }
 
-void DisplayControl::displayCharArray(char *text, byte segmentsToBlink){
+void DisplayControl::displayCharArray(char *text, byte segmentsToBlink, bool colonOn){
+  colonIsOn = colonOn;
   if (strcmp(displayText, text) != 0 || segmentsToBlink != blinkingSegments){
     strcpy(displayText, text);
     blinkingSegments = segmentsToBlink;
@@ -58,6 +60,7 @@ void DisplayControl::loop(){
     for( int i=0; i<6; i++){
       setChar(0, i, displayText[i], false);
     }
+    (colonIsOn) ? digitalWrite(colonPin, HIGH) : digitalWrite(colonPin, LOW);
 
     //Debug
     for (int i = 0; i < 2; i++) {
@@ -66,7 +69,7 @@ void DisplayControl::loop(){
     for (int i = 2; i < 4; i++) {
       Serial.print((char)displayText[i]);
     }
-    if (colonOn) Serial.print(":");
+    if (colonIsOn) Serial.print(":");
     else Serial.print(' ');
     for (int i = 4; i < 6; i++) {
       Serial.print((char)displayText[i]);
@@ -82,14 +85,15 @@ void DisplayControl::loop(){
       if ( blinkingSegmentOn && blinkingSegments & 0x01<<(5-i)  ){
         setChar(0, i, ' ', false);
         Serial.print(" ");
-        if (i == 3 && colonOn) Serial.print(":");
+        if (i == 3 && colonIsOn) Serial.print(":");
       }
       else {
         setChar(0, i, displayText[i], false);
         Serial.print(displayText[i]);
-        if (i == 3 && colonOn) Serial.print(":");
+        if (i == 3 && colonIsOn) Serial.print(":");
       }
     }
+    (colonIsOn) ? digitalWrite(colonPin, HIGH) : digitalWrite(colonPin, LOW);
     Serial.println("|");
     blinkingSegmentOn = !blinkingSegmentOn;
     lastBlinkChangeMs = millis();

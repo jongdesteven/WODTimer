@@ -200,7 +200,7 @@ void TimerClock::loop() {
     }
   }
 
-  if (state == PAUSE) displayLed.displayCharArray(displayText, 0b001111);
-  else displayLed.displayCharArray(displayText);
+  if (state == PAUSE) displayLed.displayCharArray(displayText, 0b001111, true);
+  else displayLed.displayCharArray(displayText, true);
   EasyBuzzer.update();
 }

@@ -14,15 +14,15 @@ private:
   byte blinkingSegments;
   unsigned long lastBlinkChangeMs;
   bool blinkingSegmentOn;
-  bool colonOn;
+  bool colonIsOn;
   
   public:
     DisplayControl(const byte load_csPin, const byte colon);
     void turnColonOn(bool isOn);
     char* getText();
-    void displayCharArray(char *text);
+    void displayCharArray(char *text, bool colonOn);
     /* char text[6], segmentsToBlink is bit mask 1=blink */
-    void displayCharArray(char *text, byte segmentsToBlink);
+    void displayCharArray(char *text, byte segmentsToBlink, bool colonOn);
     void forceDisplayUpdate();
     void setup();
     void loop();

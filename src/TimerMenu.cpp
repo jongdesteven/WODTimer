@@ -30,8 +30,7 @@ void TimerMenu::displayMenu(){
     //display is controlled elsewhere
     break;
   }
-  displayLed.displayCharArray(displayText, blinkingSegment);
-  displayLed.turnColonOn(false);
+  displayLed.displayCharArray(displayText, blinkingSegment, false);
 }
 
 // To be called from + / - button
@@ -207,5 +206,5 @@ void TimerMenu::decrementOption() {
   case TIMER_RUNNING:
     break;
   }
-  //displayLed.forceDisplayUpdate();
+  displayLed.forceDisplayUpdate();
 }

@@ -60,7 +60,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   switch (atoi((char*)payload)){
   case 1:
     // mainMenu.startTheTimer();
-    mainMenu.selectAction();
+    mainMenu.powerAction();
     break;
   case 2:
     // mainMenu.advanceMenu();
@@ -175,7 +175,6 @@ void setup() {
 }
 
 void loop() {
-  //wifiManager.process();
   ArduinoOTA.handle();  
   // pwrBtn.loop();
   // menuBtn.loop();
