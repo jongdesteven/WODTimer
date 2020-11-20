@@ -22,6 +22,7 @@
 #include "TimerMenu.h"
 
 char hostname[16];
+const char boardName = "WODTimer";
 const char* mqtt_server = "tinysrv";
 
 WiFiClient espClient;
@@ -54,7 +55,9 @@ void setup_wifi() {
   delay(10);
   Serial.println();
   Serial.print("Connecting to ");
-  Serial.println(SSID_INFO);
+  Serial.print(SSID_INFO);
+  Serial.print(" as ");
+  Serial.println(hostname);
 
   WiFi.hostname(hostname);
   WiFi.mode(WIFI_STA);
@@ -69,7 +72,8 @@ void setup_wifi() {
   Serial.println("");
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());	
+  Serial.println(WiFi.localIP());
+
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -96,7 +100,7 @@ void mqtt_reconnect() {
   if (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Create a random client ID
-    String clientId = "ESP8266Client-";
+    String clientId = hostname;
     clientId += String(random(0xffff), HEX);
     // Attempt to connect
     if (client.connect(clientId.c_str())) {
@@ -121,15 +125,15 @@ void setup_OTA(){
   // No authentication by default
   // ArduinoOTA.setPassword("admin");
   
-ArduinoOTA.onStart([]() {
-	String type;
-	if (ArduinoOTA.getCommand() == U_FLASH) {
-		type = "sketch";
-	} else { // U_FS
-		type = "filesystem";
-	}
-	// NOTE: if updating FS this would be the place to unmount FS using FS.end()
-	Serial.println("Start updating " + type);
+  ArduinoOTA.onStart([]() {
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH) {
+      type = "sketch";
+    } else { // U_FS
+      type = "filesystem";
+	  }
+	  // NOTE: if updating FS this would be the place to unmount FS using FS.end()
+	  Serial.println("Start updating " + type);
   });
   ArduinoOTA.onEnd([]() {
     Serial.println("\nEnd");
@@ -168,7 +172,7 @@ void sendMQTTStatus(){
 }
 
 void setup() {
-  sprintf(hostname, "WODTimer-%06x", ESP.getChipId());
+  sprintf(hostname, "%s-%06x", boardName,  ESP.getChipId());
   Serial.begin(115200);
   setup_wifi();
   setup_OTA();
