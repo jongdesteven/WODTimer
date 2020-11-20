@@ -19,10 +19,10 @@
 // Classes
 #include "buttons.h"
 #include "DisplayControl.h"
-#include "TimerMenu.h"
+#include "MainMenu.h"
 
 char hostname[16];
-const char boardName = "WODTimer";
+const char* boardName = "WODTimer";
 const char* mqtt_server = "tinysrv";
 
 WiFiClient espClient;
@@ -30,11 +30,11 @@ PubSubClient client(espClient);
 WiFiManager wifiManager;
 
 DisplayControl ledDisplay(15, 1);
-TimerMenu cfTimer(ledDisplay);
-PowerStartControlButton pwrBtn(4, cfTimer);
-MenuControlButton menuBtn(12, cfTimer);
-MinusButton minBtn(5, cfTimer);
-PlusButton plusBtn(0, cfTimer); 
+MainMenu mainMenu(ledDisplay);
+PowerStartControlButton pwrBtn(4, mainMenu);
+MenuControlButton menuBtn(12, mainMenu);
+MinusButton minBtn(5, mainMenu);
+PlusButton plusBtn(0, mainMenu); 
 char oldText2[6];
 
 void setup_wifiManager() {
@@ -79,16 +79,23 @@ void setup_wifi() {
 void callback(char* topic, byte* payload, unsigned int length) {
   switch (atoi((char*)payload)){
   case 1:
-    cfTimer.startTheTimer();
+    // mainMenu.startTheTimer();
+    mainMenu.selectAction();
     break;
   case 2:
-    cfTimer.advanceMenu();
+    // mainMenu.advanceMenu();
+    mainMenu.menuAction();
     break;
   case 3:
-    cfTimer.decrementOption();
+    //mainMenu.decrementOption();
+    mainMenu.decrementAction();
     break;
   case 4:
-    cfTimer.incrementOption();
+    //mainMenu.incrementOption();
+    mainMenu.incrementAction();
+    break;
+  case 5:
+    mainMenu.returnAction();
     break;
   default:
     Serial.print("Button: Invalid: ");
@@ -183,7 +190,7 @@ void setup() {
   // menuBtn.setup();
   // minBtn.setup();
   // plusBtn.setup();
-  cfTimer.setup();
+  mainMenu.setup();
   //ledDisplay.setup();
 }
 
@@ -194,7 +201,7 @@ void loop() {
   // menuBtn.loop();
   // minBtn.loop();
   // plusBtn.loop();
-  cfTimer.loop();
+  mainMenu.loop();
   ledDisplay.loop();
   sendMQTTStatus();
 }

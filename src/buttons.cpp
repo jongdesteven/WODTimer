@@ -29,51 +29,52 @@ void Button::loop() {
   }
 }
 
-PowerStartControlButton::PowerStartControlButton(byte attachTo, TimerMenu &menuAttach) :
+PowerStartControlButton::PowerStartControlButton(byte attachTo, MainMenu &menuAttach) :
   Button(attachTo),
   menu(menuAttach)
 {
 }
 void PowerStartControlButton::shortClick() {
   // Start Timer
-  menu.startTheTimer();
+  menu.selectAction();
 }
 void PowerStartControlButton::longClick() {
   // Wake from/Go To sleep
+  menu.returnAction();
 }
 
-MenuControlButton::MenuControlButton(byte attachTo, TimerMenu &menuAttach) :
+MenuControlButton::MenuControlButton(byte attachTo, MainMenu &menuAttach) :
   Button(attachTo),
   menu(menuAttach)
 {
 }
 void MenuControlButton::shortClick() {
   //Next changeInterval
-  menu.advanceMenu();
+  menu.menuAction();
 }
 void MenuControlButton::longClick() {
   //Do Nothing
 }
 
-MinusButton::MinusButton(byte attachTo, TimerMenu &menuAttach) :
+MinusButton::MinusButton(byte attachTo, MainMenu &menuAttach) :
   Button(attachTo),
   menu(menuAttach)
 {
 }
 void MinusButton::shortClick() {
-  menu.decrementOption();
+  menu.decrementAction();
 }
 void MinusButton::longClick() {
   // Do Nothing
 }
 
-PlusButton::PlusButton(byte attachTo, TimerMenu &menuAttach) :
+PlusButton::PlusButton(byte attachTo, MainMenu &menuAttach) :
   Button(attachTo),
   menu(menuAttach)
 {
 }
 void PlusButton::shortClick() {
-  menu.incrementOption();
+  menu.incrementAction();
 }
 void PlusButton::longClick() {
   // Do nothing

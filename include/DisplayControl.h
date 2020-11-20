@@ -4,7 +4,7 @@
 #include "Arduino.h"
 #include "LedControl_HW_SPI.h"
 
-class DisplayControl: public LedControl_HW_SPI {
+class DisplayControl: private LedControl_HW_SPI {
   
 private:
   const byte colonPin;

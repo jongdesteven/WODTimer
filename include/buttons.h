@@ -1,7 +1,7 @@
 #ifndef BUTTONS_H
 #define BUTTONS_H
 
-#include "TimerMenu.h"
+#include "MainMenu.h"
 
 class Button { 
 private:
@@ -21,10 +21,10 @@ private:
 
 class PowerStartControlButton: public Button {
 private:
-  TimerMenu &menu;
+  MainMenu &menu;
 
 public:
-	PowerStartControlButton(byte attachTo, TimerMenu &menuAttach);
+	PowerStartControlButton(byte attachTo, MainMenu &menuAttach);
 
 protected:
   void shortClick();
@@ -33,10 +33,10 @@ protected:
 
 class MenuControlButton: public Button {
 private:
-  TimerMenu &menu;
+  MainMenu &menu;
   
 public:
-	MenuControlButton(byte attachTo, TimerMenu &menuAttach);
+	MenuControlButton(byte attachTo, MainMenu &menuAttach);
 
 protected:
   void shortClick();
@@ -45,10 +45,10 @@ protected:
 
 class MinusButton: public Button {
 private:
-  TimerMenu &menu;
+  MainMenu &menu;
   
 public:
-	MinusButton(byte attachTo, TimerMenu &menuAttach);
+	MinusButton(byte attachTo, MainMenu &menuAttach);
 
 protected:
   void shortClick();
@@ -57,10 +57,10 @@ protected:
 
 class PlusButton: public Button {
 private:
-  TimerMenu &menu;
+  MainMenu &menu;
   
 public:
-	PlusButton(byte attachTo, TimerMenu &menuAttach);
+	PlusButton(byte attachTo, MainMenu &menuAttach);
 
 protected:
   void shortClick();

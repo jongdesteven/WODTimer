@@ -207,5 +207,5 @@ void TimerMenu::decrementOption() {
   case TIMER_RUNNING:
     break;
   }
-  displayLed.forceDisplayUpdate();
+  //displayLed.forceDisplayUpdate();
 }
