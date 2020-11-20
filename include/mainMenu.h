@@ -3,10 +3,12 @@
 
 #include "DisplayControl.h"
 #include "TimerMenu.h"
+#include "ConfigMenu.h"
 
 class MainMenu {
   DisplayControl &displayLed;
   TimerMenu cfTimer;
+  ConfigMenu configMenu;
   char displayText[6];
   enum MenuMode {
     MENUSTART = 0,

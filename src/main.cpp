@@ -11,15 +11,10 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-//needed for WifiManager Library
-#include <DNSServer.h>
-#include <ESP8266WebServer.h>
-#include <WiFiManager.h>         //https://github.com/tzapu/WiFiManager
-
 // Classes
+#include "MainMenu.h"
 #include "buttons.h"
 #include "DisplayControl.h"
-#include "MainMenu.h"
 
 char hostname[16];
 const char* boardName = "WODTimer";
@@ -27,7 +22,6 @@ const char* mqtt_server = "tinysrv";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
-WiFiManager wifiManager;
 
 DisplayControl ledDisplay(15, 1);
 MainMenu mainMenu(ledDisplay);
@@ -36,20 +30,6 @@ MenuControlButton menuBtn(12, mainMenu);
 MinusButton minBtn(5, mainMenu);
 PlusButton plusBtn(0, mainMenu); 
 char oldText2[6];
-
-void setup_wifiManager() {
-  wifiManager.setConfigPortalBlocking(false);
-	if(wifiManager.autoConnect("WODTimer_AP")){
-		Serial.println("connected...:)");
-		Serial.println("");
-		Serial.println("WiFi connected");
-		Serial.println("IP address: ");
-		Serial.println(WiFi.localIP());
-	}
-	else {
-		Serial.println("Configportal running");
-	}
-}
 
 void setup_wifi() {
   delay(10);

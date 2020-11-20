@@ -2,7 +2,8 @@
 
 MainMenu::MainMenu(DisplayControl &displayToAttach) :
 displayLed(displayToAttach),
-cfTimer(displayToAttach)
+cfTimer(displayToAttach),
+configMenu(displayToAttach)
 {
 }
 
@@ -70,15 +71,6 @@ void MainMenu::selectAction(){
 void MainMenu::menuAction(){
   switch(activeMenu){
   case MENUSTART:
-    switch(menuModeDisplayed){
-    case MENUSTART: // Does not exist
-    case TIMER:
-      menuModeDisplayed = CONFIG;
-      break;
-    case CONFIG:
-      menuModeDisplayed = TIMER;
-      break;
-    }
     break;
   case TIMER:
     cfTimer.advanceMenu();
@@ -112,6 +104,15 @@ void MainMenu::incrementAction(){
 void MainMenu::decrementAction(){
 switch(activeMenu){
   case MENUSTART:
+    switch(menuModeDisplayed){
+    case MENUSTART: // Does not exist
+    case TIMER:
+      menuModeDisplayed = CONFIG;
+      break;
+    case CONFIG:
+      menuModeDisplayed = TIMER;
+      break;
+    }
     break;
   case TIMER:
     cfTimer.decrementOption();
