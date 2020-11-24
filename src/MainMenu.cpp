@@ -8,8 +8,14 @@ configMenu(displayToAttach)
 }
 
 void MainMenu::setup(){
-  activeMenu = MENUSTART;
+  // Start with Main Menu
+  //activeMenu = MENUSTART;
+  //menuModeDisplayed = TIMER;
+
+  // Start with Timer Mode
+  activeMenu = TIMER;
   menuModeDisplayed = TIMER;
+  cfTimer.setup();
 }
 
 void MainMenu::loop(){
@@ -21,6 +27,7 @@ void MainMenu::loop(){
     cfTimer.loop();
     break;
   case CONFIG:
+    configMenu.loop();
     break;
   }
 

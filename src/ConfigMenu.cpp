@@ -8,46 +8,83 @@ displayLed(displayToAttach)
 void ConfigMenu::turnOffWifi(){
   int disconnect_tries = 0;
   Serial.print("Turning Off Wifi");
-  wifiManager.stopConfigPortal();
-  WiFi.disconnect();
-  WiFi.mode(WIFI_OFF);
-  WiFi.forceSleepBegin();
+  if (WiFi.status() != WL_CONNECTED){
+    wifiManager.stopConfigPortal();
+  }
+  // WiFi.disconnect();
+  // WiFi.mode(WIFI_OFF);
+  // WiFi.forceSleepBegin();
 
   while (WiFi.status() == WL_CONNECTED && (disconnect_tries++ < 30)){
     //Disconnect in 3sec
     delay(100);
     Serial.print(".");
   }
-  Serial.println("ended");
 
+  if (WiFi.status() == WL_CONNECTED) {
+    wifiConfigModeDisplayed = WIFI_CONFIG_ON;
+    wifiConfigMode = WIFI_CONFIG_ON;
+    Serial.println("WiFi Connected");
+  }
+  else {
+    wifiConfigModeDisplayed = WIFI_CONFIG_OFF;
+    wifiConfigMode = WIFI_CONFIG_OFF;
+    Serial.println("WiFi Disconnected");
+  }
 }
 
 void ConfigMenu::setupWifiManager() {
-  WiFi.forceSleepWake();
-  WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP  
-  Serial.setDebugOutput(true);
+  Serial.print("Wifi: ");
+  // WiFi.forceSleepWake();
+  // WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP  
+  Serial.println("Turned On");
+  //Serial.setDebugOutput(true);
   delay(1000);
-  Serial.println("\n Starting");
-  // wm.resetSettings();
+
+  if (WiFi.status() == WL_CONNECTED){
+    Serial.println("WiFi connected: disconnecting");
+    WiFi.disconnect();
+  }
+
+  Serial.println("WifiManager starting");
+  wifiManager.resetSettings();
+
   wifiManager.setHostname("WODTimer_AP");
   wifiManager.setConfigPortalBlocking(false);
 
 	if(wifiManager.autoConnect("WODTimer_AP")){
-		Serial.println("connected...:)");
-		Serial.println("");
-		Serial.println("WiFi connected");
-		Serial.println("IP address: ");
+		Serial.println("WifiManager connected:)");
+		Serial.print("IP address: ");
 		Serial.println(WiFi.localIP());
 	}
 	else {
 		Serial.println("Configportal running");
 	}
+  
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("WiFi Connected");
+    wifiConfigModeDisplayed = WIFI_CONFIG_ON;
+    wifiConfigMode = WIFI_CONFIG_ON;
+  }
+  else {
+    Serial.println("WiFi NOT Connected");
+    wifiConfigModeDisplayed = WIFI_CONFIG_OFF;
+    wifiConfigMode = WIFI_CONFIG_OFF;
+  }
   wifiOnStartTimeMs = millis();
 }
 
  void ConfigMenu::setup(){
   activeMenu = MENUSTART;
   menuModeDisplayed = WIFI;
+  if (WiFi.getMode() == WIFI_OFF){
+   wifiConfigMode = WIFI_CONFIG_OFF;
+   wifiConfigModeDisplayed = WIFI_CONFIG_OFF;
+  }
+  else {
+    wifiConfigMode = WIFI_CONFIG_ON;
+    wifiConfigModeDisplayed = WIFI_CONFIG_ON;
+  }
   wifiOnStartTimeMs = 0;
  }
 
@@ -55,6 +92,7 @@ void ConfigMenu::loop(){
   switch(activeMenu){
   case MENUSTART: // Does not exist
     displayMenu();
+    break;
   case WIFI:
     displayWifiConfig();
     break;
@@ -66,48 +104,44 @@ void ConfigMenu::loop(){
 void ConfigMenu::displayWifiConfig(){
   switch (wifiConfigModeDisplayed){
   case WIFI_CONFIG_OFF:
-    sprintf(displayText, "vifiof");
-    if (wifiConfigMode == WIFI_CONFIG_OFF){
+    switch (wifiConfigMode) {
+    case WIFI_CONFIG_OFF:
+      sprintf(displayText, "vifiof");
       displayLed.displayCharArray(displayText, true);
-    }
-    else {
+      break;
+    case WIFI_CONFIG_ON:
+      sprintf(displayText, "vifiof");
       displayLed.displayCharArray(displayText, 0b000011, true);
+      break;
     }
     break;
   case WIFI_CONFIG_ON:
-    sprintf(displayText, "vifion");
-    if (wifiConfigMode == WIFI_CONFIG_ON){
-      displayLed.displayCharArray(displayText, true);
-    }
-    else {
+    switch (wifiConfigMode) {
+    case WIFI_CONFIG_OFF:
+      sprintf(displayText, "vifion");
       displayLed.displayCharArray(displayText, 0b000011, true);
+      break;
+    case WIFI_CONFIG_ON:
+      if (WiFi.status() == WL_CONNECTED) {
+        sprintf(displayText, "vifion");
+        displayLed.displayCharArray(displayText, true);
+      }
+      else {
+        sprintf(displayText, "notCon");
+        displayLed.displayCharArray(displayText, true);
+       
+        // Turn off again after Timeout
+        if (WiFi.status() != WL_CONNECTED && (millis() - wifiOnStartTimeMs >= WIFI_CONN_TIMEOUT_MS)){
+          //Connection timeout
+          Serial.println("Wifi connection timeout, no connection");
+          turnOffWifi();
+        }
+      }
+      break;
     }
-    wifiManager.process();
-    displayWifiProgress();
-
-    if (millis() - wifiOnStartTimeMs >= WIFI_CONN_TIMEOUT_MS){
-      //Connection timeout
-      turnOffWifi();
-      wifiConfigModeDisplayed = WIFI_CONFIG_OFF;
-      wifiConfigMode = WIFI_CONFIG_OFF;
-    }
-    break;
+    break;  
   }
-}
-
-void ConfigMenu::displayWifiProgress(){
-  if (millis() - wifiOnStartTimeMs >= 2000){
-    if (WiFi.status() != WL_CONNECTED) {
-      sprintf(displayText, "notCon");
-      displayLed.turnColonOn(false);
-      displayLed.displayCharArray(displayText, false); 
-    }
-    else {
-      sprintf(displayText, "Connec");
-      displayLed.turnColonOn(false);
-      displayLed.displayCharArray(displayText, false);
-    }  
-  } 
+  wifiManager.process();
 }
 
 void ConfigMenu::displayMenu(){
@@ -144,7 +178,7 @@ void ConfigMenu::menuAction(){
   case MENUSTART:
     switch(menuModeDisplayed){
     case MENUSTART: // Does not exist
-    break;
+      break;
     case WIFI:
       activeMenu = menuModeDisplayed;
       switch (wifiConfigMode) {
@@ -159,6 +193,7 @@ void ConfigMenu::menuAction(){
     case OTA:
       break;
     }
+    break;
   case WIFI:
     switch (wifiConfigModeDisplayed){
     case WIFI_CONFIG_OFF:

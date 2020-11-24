@@ -18,7 +18,6 @@ private:
   
   public:
     DisplayControl(const byte load_csPin, const byte colon);
-    void turnColonOn(bool isOn);
     char* getText();
     void displayCharArray(char *text, bool colonOn);
     /* char text[6], segmentsToBlink is bit mask 1=blink */

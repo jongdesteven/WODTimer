@@ -23,11 +23,6 @@ void DisplayControl::setup(){
   //clearDisplay(0);
 }
 
-void DisplayControl::turnColonOn(bool isOn){
-  (isOn) ? digitalWrite(colonPin, HIGH) : digitalWrite(colonPin, LOW);
-  colonIsOn = isOn;
-}
-
 char* DisplayControl::getText(){
   return displayText;
 }
@@ -46,7 +41,6 @@ void DisplayControl::displayCharArray(char *text, byte segmentsToBlink, bool col
   if (strcmp(displayText, text) != 0 || segmentsToBlink != blinkingSegments){
     strcpy(displayText, text);
     blinkingSegments = segmentsToBlink;
-    displayRefresh = true;
   }
 }
 

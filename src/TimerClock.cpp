@@ -107,7 +107,6 @@ void TimerClock::startClock() {
     }
     activeSecond = 1;
     startTimeMs = millis()-1000;
-    displayLed.turnColonOn(true);
     break;
   case RUN_UP:
   case RUN_DOWN:
@@ -125,7 +124,6 @@ void TimerClock::startClock() {
     break;
   case TIMER_END:
     activeSecond = 0;
-    displayLed.turnColonOn(false);
     startTimeMs = millis();
     state = PRECOUNTDOWN;
     break;
@@ -153,6 +151,7 @@ void TimerClock::loop() {
         beepAtTheEnd();
         startClock();
       }
+      displayLed.displayCharArray(displayText, false);
       break;
     case RUN_UP:
       if (roundsLeft() > 0){
@@ -173,6 +172,7 @@ void TimerClock::loop() {
       else {
         state = TIMER_END;
       }
+      displayLed.displayCharArray(displayText, true);
       break;
     case RUN_DOWN:
       if (roundsLeft() > 0){
@@ -191,16 +191,15 @@ void TimerClock::loop() {
       else {
         state = TIMER_END;
       }
+      displayLed.displayCharArray(displayText, true);
       break;
     case PAUSE:
-      // TODO Blink Colon ?
+      displayLed.displayCharArray(displayText, 0b001111, true);
       break; 
     case TIMER_END:
+      displayLed.displayCharArray(displayText, true);
       break;
     }
   }
-
-  if (state == PAUSE) displayLed.displayCharArray(displayText, 0b001111, true);
-  else displayLed.displayCharArray(displayText, true);
   EasyBuzzer.update();
 }

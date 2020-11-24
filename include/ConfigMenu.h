@@ -30,17 +30,16 @@ private:
   }wifiConfigMode;
   WifiConfig wifiConfigModeDisplayed;
   
-  bool wifiOn = false;
-  const char* wifiName = "  conn"; //Resembles WOD on 7-seg
-  const char* otaName = "  OtA "; // config
+  const char* wifiName = "  vifi"; //
+  const char* otaName = "  OtA "; // 
   unsigned long wifiOnStartTimeMs;
 
-  void displayWifiConfig();
   void setupWifiManager();
   void turnOffWifi();
   
   void displayMenu();
-  void displayWifiProgress();
+  void displayWifiConfig();
+
 
 public:
   ConfigMenu(DisplayControl &displayToAttach);
