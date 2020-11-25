@@ -1,5 +1,15 @@
 #include "TimerMenu.h"
 
+void TimerMenu::goDeepSleep() {
+  Serial.print("Timer: goDeepSleep:");
+
+  // Turn off Display
+  Serial.print("..Display off..");
+  displayLed.shutdown(1, true);
+  Serial.println(".. Start DeepSleep for 3s");
+  ESP.deepSleep(3*1000000);
+}
+
 void TimerMenu::displayMenu(){
   //ToDo: Blinking changeDigit
   int blinkingSegment = 0;
@@ -95,6 +105,7 @@ void TimerMenu::setup() {
   activeMenu = 0;
   changeDigit = MINUTES;
   menuMode = MENUSTART;
+  lastActionMs = millis();
 }
 
 void TimerMenu::loop() {
@@ -104,6 +115,9 @@ void TimerMenu::loop() {
   case NR_OF_ROUNDS:
   case MENUSTART:
     displayMenu();
+    if ( (millis() - lastActionMs) >= (60*1000)){
+      goDeepSleep();
+    }
     break;
   case TIMER_RUNNING:
     activeTimer.loop();
@@ -130,6 +144,7 @@ void TimerMenu::startTheTimer(){
     activeTimer.startClock();
     break;
   }
+  lastActionMs = millis();
 }
 
 void TimerMenu::advanceMenu(){
@@ -173,6 +188,7 @@ void TimerMenu::advanceMenu(){
     menuMode = INTERVAL1;
     break;
   }
+  lastActionMs = millis();
 }
 
 // To be called by button +
@@ -190,6 +206,7 @@ void TimerMenu::incrementOption() {
     break;
   }
   displayLed.forceDisplayUpdate();
+  lastActionMs = millis();
 }
 
 // To be called by button -
@@ -207,4 +224,5 @@ void TimerMenu::decrementOption() {
     break;
   }
   displayLed.forceDisplayUpdate();
+  lastActionMs = millis();
 }
