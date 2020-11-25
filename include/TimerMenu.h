@@ -11,6 +11,7 @@ private:
   DisplayControl &displayLed;
   char displayText[6];
   int activeMenu;
+  unsigned long lastActionMs;
   enum MenuMode {
     MENUSTART = 0,
     INTERVAL1 = 1,
@@ -33,6 +34,7 @@ private:
                               MenuOption("nt", 60, 30, 5, false, true)};
   TimerClock activeTimer = TimerClock(displayLed, &menuOptions[0]);
   
+  void goDeepSleep();
   void displayMenu();
   void changeTimerMode(int changes);
   void incrementIntervalRounds();
