@@ -158,7 +158,23 @@ void sendMQTTStatus(){
   }
 }
 
+bool wakeFromDeepSleep(){
+  pinMode(D3, INPUT_PULLUP);
+  if (digitalRead(D3) == LOW){
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
 void setup() {
+  Serial.begin(115200);
+  if (!wakeFromDeepSleep()){
+    Serial.println("Pin D3 / GPIO0 HIGH -> Deepsleep");
+    ESP.deepSleep(3 * 1000000); //3 Sec.
+  }
+
   sprintf(hostname, "%s-%06x", boardName,  ESP.getChipId());
   Serial.begin(115200);
   setup_wifi();
