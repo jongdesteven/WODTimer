@@ -106,6 +106,7 @@ void mqtt_reconnect() {
   }
 }
 
+//TODO: move to config menu
 void setup_OTA(){
   ArduinoOTA.setHostname(hostname);
 
@@ -159,8 +160,8 @@ void sendMQTTStatus(){
 }
 
 bool wakeFromDeepSleep(){
-  pinMode(D3, INPUT_PULLUP);
-  if (digitalRead(D3) == LOW) {
+  pinMode(4, INPUT_PULLUP);
+  if (digitalRead(4) == LOW) {
     return true;
   }
   else {
