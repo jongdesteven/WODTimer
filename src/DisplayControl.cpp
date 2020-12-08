@@ -16,11 +16,15 @@ void DisplayControl::setup(){
   blinkingSegmentOn = false;
   colonIsOn = false;
 
-  //begin(csPin, 1, 10000000);
-  //setScanLimit(0, 6);
-  //shutdown(0, false);
-  //setIntensity(0, 8); //0-15
-  //clearDisplay(0);
+  Serial.print("Starting MAX7219..");
+
+  begin(csPin, 1, 10000000);
+  setScanLimit(0, 6);
+  shutdown(0, false);
+  setIntensity(0, 8); //0-15
+  clearDisplay(0);
+  //setChar(1,0,'2',false);
+  Serial.println("..Started");
 }
 
 char* DisplayControl::getText(){
@@ -41,6 +45,7 @@ void DisplayControl::displayCharArray(char *text, byte segmentsToBlink, bool col
   if (strcmp(displayText, text) != 0 || segmentsToBlink != blinkingSegments){
     strcpy(displayText, text);
     blinkingSegments = segmentsToBlink;
+    displayRefresh = true;
   }
 }
 
@@ -70,7 +75,6 @@ void DisplayControl::loop(){
     }
     Serial.println("|");
     //Debug end
-
     displayRefresh = false;
   }
   else if ( blinkingSegments > 0 && millis() - lastBlinkChangeMs >= 500){

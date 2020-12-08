@@ -169,24 +169,24 @@ bool wakeFromDeepSleep(){
 }
 
 void setup() {
-  Serial.begin(115200);
-  if (!wakeFromDeepSleep()){
-    Serial.println("Button D3/GPIO0 not pressed, going to DeepSleep for 3s");
-    ESP.deepSleep(3*1000000);
-  }
-
+  //Serial.begin(115200);
+  // if (!wakeFromDeepSleep()){
+  //   Serial.println("Button D3/GPIO0 not pressed, going to DeepSleep for 3s");
+  //   ESP.deepSleep(3*1000000);
+  // }
+  
   sprintf(hostname, "%s-%06x", boardName,  ESP.getChipId());
   setup_wifi();
   setup_OTA();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 
+  ledDisplay.setup();
   // pwrBtn.setup();
   // menuBtn.setup();
   // minBtn.setup();
   // plusBtn.setup();
   mainMenu.setup();
-  //ledDisplay.setup();
 }
 
 void loop() {

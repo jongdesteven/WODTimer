@@ -30,7 +30,6 @@ void MainMenu::loop(){
     configMenu.loop();
     break;
   }
-
 }
 
 void MainMenu::selectMenu(){
