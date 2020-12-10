@@ -106,7 +106,7 @@ void ConfigMenu::loop(){
 
 void ConfigMenu::displayBrightnessMenu(){
   sprintf(displayText, "%2ddisp", displayBrightness);
-  displayLed.displayCharArray(displayText, true);
+  displayLed.displayCharArray(displayText, false);
 }
 
 void ConfigMenu::displayWifiConfig(){

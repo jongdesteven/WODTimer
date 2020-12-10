@@ -4,10 +4,10 @@ void TimerMenu::goDeepSleep() {
   Serial.print("Timer: goDeepSleep:");
 
   // Turn off Display
-  Serial.print("..Display off..");
-  displayLed.shutdown(1, true);
-  Serial.println(".. Start DeepSleep for 3s");
-  ESP.deepSleep(3*1000000);
+  // Serial.print("..Display off..");
+  // displayLed.shutdown(1, true);
+  // Serial.println(".. Start DeepSleep for 3s");
+  // ESP.deepSleep(3*1000000);
 }
 
 void TimerMenu::displayMenu(){

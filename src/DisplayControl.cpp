@@ -7,8 +7,9 @@ DisplayControl::DisplayControl(const byte load_csPin, const byte colon) :
   }
 
 void DisplayControl::setup(){
-  pinMode(colonPin, OUTPUT);
-  digitalWrite(colonPin, LOW);
+  //pinMode(colonPin, OUTPUT);
+  //digitalWrite(colonPin, LOW);
+  
   
   sprintf(displayText, "------");
   displayRefresh = false;
@@ -19,11 +20,10 @@ void DisplayControl::setup(){
   Serial.print("Starting MAX7219..");
 
   begin(csPin, 1, 10000000);
-  setScanLimit(0, 6);
+  setScanLimit(0, 7); //6 digits, Colon to digit7
   shutdown(0, false);
-  setIntensity(0, 8); //0-15
+  setIntensity(0, 0); //0-15
   clearDisplay(0);
-  //setChar(1,0,'2',false);
   Serial.println("..Started");
 }
 
@@ -59,7 +59,8 @@ void DisplayControl::loop(){
     for( int i=0; i<6; i++){
       setChar(0, i, displayText[i], false);
     }
-    (colonIsOn) ? digitalWrite(colonPin, HIGH) : digitalWrite(colonPin, LOW);
+    //if(colonIsOn) ? digitalWrite(colonPin, HIGH) : digitalWrite(colonPin, LOW);
+    setChar(0, 6, ' ', colonIsOn);
 
     //Debug
     for (int i = 0; i < 2; i++) {
@@ -82,17 +83,22 @@ void DisplayControl::loop(){
     for( int i=0; i<6; i++){
       if ( blinkingSegmentOn && blinkingSegments & 0x01<<(5-i)  ){
         setChar(0, i, ' ', false);
+        
         Serial.print(" ");
         if (i == 3 && colonIsOn) Serial.print(":");
       }
       else {
         setChar(0, i, displayText[i], false);
+
         Serial.print(displayText[i]);
         if (i == 3 && colonIsOn) Serial.print(":");
       }
     }
-    (colonIsOn) ? digitalWrite(colonPin, HIGH) : digitalWrite(colonPin, LOW);
     Serial.println("|");
+
+    //(colonIsOn) ? digitalWrite(colonPin, HIGH) : digitalWrite(colonPin, LOW);
+    setChar(0, 6, ' ', colonIsOn);
+    
     blinkingSegmentOn = !blinkingSegmentOn;
     lastBlinkChangeMs = millis();
   }
