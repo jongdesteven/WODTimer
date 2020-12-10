@@ -20,7 +20,8 @@ private:
   enum MenuMode {
     MENUSTART = 0,
     WIFI = 1,
-    OTA = 2
+    OTA = 2,
+    BRIGHTNESS = 3
   }activeMenu;
   MenuMode menuModeDisplayed;
 
@@ -32,6 +33,8 @@ private:
   
   const char* wifiName = "  vifi"; //
   const char* otaName = "  OtA "; // 
+  const char* brightnessName = "  disp"; // 
+  
   unsigned long wifiOnStartTimeMs;
 
   void setupWifiManager();
@@ -39,6 +42,9 @@ private:
   
   void displayMenu();
   void displayWifiConfig();
+  void displayBrightnessMenu();
+
+  int displayBrightness = 0;
 
 
 public:

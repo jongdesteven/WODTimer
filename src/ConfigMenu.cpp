@@ -98,7 +98,15 @@ void ConfigMenu::loop(){
     break;
   case OTA:
     break;
+  case BRIGHTNESS:
+    displayBrightnessMenu();
+    break;
   }
+}
+
+void ConfigMenu::displayBrightnessMenu(){
+  sprintf(displayText, "%2ddisp", displayBrightness);
+  displayLed.displayCharArray(displayText, true);
 }
 
 void ConfigMenu::displayWifiConfig(){
@@ -153,6 +161,9 @@ void ConfigMenu::displayMenu(){
   case OTA:
     displayLed.displayCharArray((char*)otaName, false);
     break;
+  case BRIGHTNESS:
+    displayLed.displayCharArray((char*)brightnessName, false);
+    break;
   }
 }
 
@@ -168,6 +179,9 @@ void ConfigMenu::powerAction(){
     activeMenu = MENUSTART;
     break;
   case OTA:
+    activeMenu = MENUSTART;
+    break;
+  case BRIGHTNESS:
     activeMenu = MENUSTART;
     break;
   }
@@ -192,6 +206,9 @@ void ConfigMenu::menuAction(){
       break;
     case OTA:
       break;
+    case BRIGHTNESS:
+      activeMenu = menuModeDisplayed;
+      break;
     }
     break;
   case WIFI:
@@ -207,6 +224,8 @@ void ConfigMenu::menuAction(){
     }
     break;
   case OTA:
+    break;
+  case BRIGHTNESS:
     break;
   }
 }
@@ -236,6 +255,13 @@ void ConfigMenu::incrementAction(){
     break;
   case OTA:
     break;
+  case BRIGHTNESS:
+    displayBrightness++;
+    if (displayBrightness > 15){
+      displayBrightness = 15;
+    }
+    displayLed.setIntensity(0, displayBrightness);
+    break;
   }
 }
 
@@ -263,6 +289,13 @@ switch(activeMenu){
     }
     break;
   case OTA:
+    break;
+  case BRIGHTNESS:
+    displayBrightness--;
+    if (displayBrightness < 0){
+      displayBrightness = 0;
+    }
+    displayLed.setIntensity(0, displayBrightness);
     break;
   }
 }
