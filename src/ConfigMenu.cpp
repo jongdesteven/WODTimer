@@ -239,6 +239,9 @@ void ConfigMenu::incrementAction(){
       menuModeDisplayed = OTA;
       break;
     case OTA:
+      menuModeDisplayed = BRIGHTNESS;
+      break;
+    case BRIGHTNESS:
       menuModeDisplayed = WIFI;
       break;
     }
@@ -271,10 +274,13 @@ switch(activeMenu){
     switch(menuModeDisplayed){
     case MENUSTART: // Does not exist
     case WIFI:
-      menuModeDisplayed = OTA;
+      menuModeDisplayed = BRIGHTNESS;
       break;
     case OTA:
       menuModeDisplayed = WIFI;
+      break;
+    case BRIGHTNESS:
+      menuModeDisplayed = OTA;
       break;
     }
     break;
