@@ -77,6 +77,13 @@ void ConfigMenu::setupWifiManager() {
  void ConfigMenu::setup(){
   activeMenu = MENUSTART;
   menuModeDisplayed = WIFI;
+  EasyBuzzer.setPin(15);
+
+  displayBrightness = EEPROM.read(EEPROM_BRIGHTNESS_ADDR);
+  if (displayBrightness < 0 || displayBrightness > 15) displayBrightness = 0;
+  beepVolume = EEPROM.read(EEPROM_BEEP_ADDR);
+  if (beepVolume < 0 || beepVolume > 3) beepVolume = 0;
+
   if (WiFi.getMode() == WIFI_OFF){
    wifiConfigMode = WIFI_CONFIG_OFF;
    wifiConfigModeDisplayed = WIFI_CONFIG_OFF;
@@ -101,11 +108,19 @@ void ConfigMenu::loop(){
   case BRIGHTNESS:
     displayBrightnessMenu();
     break;
+  case BEEP:
+    displayBeepMenu();
   }
 }
 
+void ConfigMenu::displayBeepMenu(){
+  sprintf(displayText, "%2dbEEP", beepVolume);
+  displayLed.displayCharArray(displayText, false);
+  EasyBuzzer.update();
+}
+
 void ConfigMenu::displayBrightnessMenu(){
-  sprintf(displayText, "%2ddisp", displayBrightness);
+  sprintf(displayText, "%2ddisp", EEPROM.read(EEPROM_BRIGHTNESS_ADDR));
   displayLed.displayCharArray(displayText, false);
 }
 
@@ -164,6 +179,9 @@ void ConfigMenu::displayMenu(){
   case BRIGHTNESS:
     displayLed.displayCharArray((char*)brightnessName, false);
     break;
+  case BEEP:
+    displayLed.displayCharArray((char*)beepName, false);
+    break;
   }
 }
 
@@ -183,6 +201,17 @@ void ConfigMenu::powerAction(){
     break;
   case BRIGHTNESS:
     activeMenu = MENUSTART;
+    if (displayBrightness != EEPROM.read(EEPROM_BRIGHTNESS_ADDR)){
+      EEPROM.write(EEPROM_BRIGHTNESS_ADDR, displayBrightness);
+      EEPROM.commit();
+    }
+    break;
+  case BEEP:
+    activeMenu = MENUSTART;
+    if (beepVolume != EEPROM.read(EEPROM_BEEP_ADDR)){
+      EEPROM.write(EEPROM_BEEP_ADDR, beepVolume);
+      EEPROM.commit();
+    }
     break;
   }
 }
@@ -209,6 +238,9 @@ void ConfigMenu::menuAction(){
     case BRIGHTNESS:
       activeMenu = menuModeDisplayed;
       break;
+    case BEEP:
+      activeMenu = menuModeDisplayed;
+      break;
     }
     break;
   case WIFI:
@@ -227,6 +259,8 @@ void ConfigMenu::menuAction(){
     break;
   case BRIGHTNESS:
     break;
+  case BEEP:
+    break;
   }
 }
 
@@ -242,6 +276,9 @@ void ConfigMenu::incrementAction(){
       menuModeDisplayed = BRIGHTNESS;
       break;
     case BRIGHTNESS:
+      menuModeDisplayed = BEEP;
+      break;
+    case BEEP:
       menuModeDisplayed = WIFI;
       break;
     }
@@ -259,11 +296,17 @@ void ConfigMenu::incrementAction(){
   case OTA:
     break;
   case BRIGHTNESS:
-    displayBrightness++;
-    if (displayBrightness > 15){
-      displayBrightness = 15;
+    if (displayBrightness < 15){
+      displayBrightness++;
     }
     displayLed.setIntensity(0, displayBrightness);
+    break;
+  case BEEP:
+    if (beepVolume < 2){
+      beepVolume++;
+      if (beepVolume == 1) EasyBuzzer.singleBeep(3000, 200);
+      else if ( beepVolume == 2) EasyBuzzer.singleBeep(2000, 200);
+    }
     break;
   }
 }
@@ -274,13 +317,16 @@ switch(activeMenu){
     switch(menuModeDisplayed){
     case MENUSTART: // Does not exist
     case WIFI:
-      menuModeDisplayed = BRIGHTNESS;
+      menuModeDisplayed = BEEP;
       break;
     case OTA:
       menuModeDisplayed = WIFI;
       break;
     case BRIGHTNESS:
       menuModeDisplayed = OTA;
+      break;
+    case BEEP:
+      menuModeDisplayed = BRIGHTNESS;
       break;
     }
     break;
@@ -297,11 +343,17 @@ switch(activeMenu){
   case OTA:
     break;
   case BRIGHTNESS:
-    displayBrightness--;
-    if (displayBrightness < 0){
-      displayBrightness = 0;
+    if (displayBrightness > 0){
+      displayBrightness--;
     }
     displayLed.setIntensity(0, displayBrightness);
+    break;
+  case BEEP:
+    if (beepVolume > 0){
+      beepVolume--;
+      if (beepVolume == 1) EasyBuzzer.singleBeep(3000, 200);
+      else if ( beepVolume == 2) EasyBuzzer.singleBeep(2000, 200);
+    }
     break;
   }
 }

@@ -4,6 +4,7 @@
 #include "DisplayControl.h"
 #include "MenuOption.h"
 #include "EasyBuzzer.h"
+#include "eepromLayout.h"
 
 class TimerClock {
 //Todo: Add reference to display
@@ -12,6 +13,9 @@ private:
   MenuOption *activeOption;
   char displayText[6];
   unsigned long startTimeMs;
+  int activeSecond;
+  byte beepVolume;
+
   enum State {
     PAUSE,
     PRECOUNTDOWN,
@@ -19,7 +23,7 @@ private:
     RUN_DOWN,
     TIMER_END
   }state;
-  int activeSecond;
+  
   
   void beepAtTheEnd();
   int roundsIn();
@@ -29,7 +33,7 @@ private:
   int roundsLeft();
   int intervalsLeft();
   int secondsLeftThisInterval();
-    
+
 public:
   TimerClock(DisplayControl &displayLedToAttach, MenuOption *optionToActivate);
   void startClock();

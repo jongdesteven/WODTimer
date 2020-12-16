@@ -4,6 +4,7 @@
 #include "DisplayControl.h"
 #include "MenuOption.h"
 #include "TimerClock.h"
+#include "eepromLayout.h"
 
 class TimerMenu {
 

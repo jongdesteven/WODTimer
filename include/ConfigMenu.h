@@ -7,6 +7,8 @@
 #include <WiFiManager.h>         //https://github.com/tzapu/WiFiManager
 
 #include "DisplayControl.h"
+#include "eepromLayout.h"
+#include "EasyBuzzer.h"
 
 #define WIFI_CONN_TIMEOUT_MS 300000
 
@@ -21,7 +23,8 @@ private:
     MENUSTART = 0,
     WIFI = 1,
     OTA = 2,
-    BRIGHTNESS = 3
+    BRIGHTNESS = 3,
+    BEEP = 4
   }activeMenu;
   MenuMode menuModeDisplayed;
 
@@ -34,6 +37,7 @@ private:
   const char* wifiName = "  vifi"; //
   const char* otaName = "  OtA "; // 
   const char* brightnessName = "  disp"; // 
+  const char* beepName = "  bEEP"; // 
   
   unsigned long wifiOnStartTimeMs;
 
@@ -43,9 +47,10 @@ private:
   void displayMenu();
   void displayWifiConfig();
   void displayBrightnessMenu();
+  void displayBeepMenu();
 
-  int displayBrightness = 0;
-
+  byte displayBrightness = 0;
+  byte beepVolume = 0;
 
 public:
   ConfigMenu(DisplayControl &displayToAttach);

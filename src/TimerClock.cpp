@@ -7,10 +7,15 @@ TimerClock::TimerClock(DisplayControl &displayLedToAttach, MenuOption *optionToA
 }
 
 void TimerClock::beepAtTheEnd() {
+  int beepFreq = 0;
+  if (beepVolume == 0) return;
+  else if (beepVolume == 1) beepFreq = 3000;
+  else if ( beepVolume == 2) beepFreq = 2000;
+
   if (state == PRECOUNTDOWN ){
     if (activeSecond == 10){
       EasyBuzzer.singleBeep(
-                  5000, 	// Frequency in hertz(HZ).  
+                  beepFreq, 	// Frequency in hertz(HZ).  
                   1000 	// Duration of the beep in milliseconds(ms). 
                   //done		// [Optional] Function to call when done.
                   );
@@ -18,8 +23,8 @@ void TimerClock::beepAtTheEnd() {
     }
     else if (activeSecond >= 7){
       EasyBuzzer.singleBeep(
-                  5000, 	// Frequency in hertz(HZ).  
-                  500 	// Duration of the beep in milliseconds(ms). 
+                  beepFreq, 	// Frequency in hertz(HZ).  
+                  500	// Duration of the beep in milliseconds(ms). 
                   //done		// [Optional] Function to call when done.
                   );
       Serial.println("Beep!");
@@ -27,7 +32,7 @@ void TimerClock::beepAtTheEnd() {
   }
   else if (secondsLeftThisInterval() == 0) {
     EasyBuzzer.singleBeep(
-                  5000, 	// Frequency in hertz(HZ).  
+                  beepFreq, 	// Frequency in hertz(HZ).  
                   1000 	// Duration of the beep in milliseconds(ms). 
                   //done		// [Optional] Function to call when done.
                   );
@@ -134,6 +139,11 @@ void TimerClock::setup(MenuOption *optionToAttach) {
   activeOption = optionToAttach;
   sprintf(displayText, "      ");
   state = TIMER_END;
+  EasyBuzzer.setPin(15);
+  beepVolume = EEPROM.read(EEPROM_BEEP_ADDR);
+  if (beepVolume < 0 || beepVolume > 2){
+    beepVolume = 0;
+  }
 }
 
 void TimerClock::loop() {

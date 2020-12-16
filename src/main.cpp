@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "ssid_info.h"
+#include "eepromLayout.h"
 
 // For ArduinoOTA
 #include <ESP8266WiFi.h>
@@ -23,7 +24,7 @@ const char* mqtt_server = "tinysrv";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-DisplayControl ledDisplay(15, 1);
+DisplayControl ledDisplay(2, 1);
 MainMenu mainMenu(ledDisplay);
 PowerStartControlButton pwrBtn(4, mainMenu);
 MenuControlButton menuBtn(12, mainMenu);
@@ -175,6 +176,7 @@ void setup() {
   //   Serial.println("Button D3/GPIO0 not pressed, going to DeepSleep for 3s");
   //   ESP.deepSleep(3*1000000);
   // }
+  EEPROM.begin(512);
   
   sprintf(hostname, "%s-%06x", boardName,  ESP.getChipId());
   setup_wifi();
@@ -183,19 +185,19 @@ void setup() {
   client.setCallback(callback);
 
   ledDisplay.setup();
-  // pwrBtn.setup();
-  // menuBtn.setup();
-  // minBtn.setup();
-  // plusBtn.setup();
+  pwrBtn.setup();
+  menuBtn.setup();
+  minBtn.setup();
+  plusBtn.setup();
   mainMenu.setup();
 }
 
 void loop() {
   ArduinoOTA.handle();  
-  // pwrBtn.loop();
-  // menuBtn.loop();
-  // minBtn.loop();
-  // plusBtn.loop();
+  pwrBtn.loop();
+  menuBtn.loop();
+  minBtn.loop();
+  plusBtn.loop();
   mainMenu.loop();
   ledDisplay.loop();
   sendMQTTStatus();
