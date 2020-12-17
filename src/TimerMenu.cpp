@@ -102,6 +102,10 @@ TimerMenu::TimerMenu(DisplayControl &displayLedToAttach):
 }
 
 void TimerMenu::setup() {
+  for ( int i = 0; i < (sizeof(menuOptions)/sizeof(MenuOption)) ; i++)
+  {
+    menuOptions[i].setup();
+  }
   activeMenu = 0;
   changeDigit = MINUTES;
   menuMode = MENUSTART;

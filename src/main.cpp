@@ -176,7 +176,8 @@ void setup() {
   //   Serial.println("Button D3/GPIO0 not pressed, going to DeepSleep for 3s");
   //   ESP.deepSleep(3*1000000);
   // }
-  EEPROM.begin(512);
+  
+  EEPROM.begin(50);
   
   sprintf(hostname, "%s-%06x", boardName,  ESP.getChipId());
   setup_wifi();

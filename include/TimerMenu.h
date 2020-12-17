@@ -29,10 +29,10 @@ private:
     ROUNDS = 5
   }changeDigit;
   //const char* name, int time1, int time2, int rounds, bool countUp, bool isInterval
-  MenuOption menuOptions[4] = {MenuOption("UP", 356400, 0, 0, true, false),
-                              MenuOption("UP", 45, 0, 2, true, false),  
-                              MenuOption("dn", 10*60, 0, 0, false, false), 
-                              MenuOption("nt", 60, 30, 5, false, true)};
+  MenuOption menuOptions[4] = {MenuOption("UP", 356400, 0, 0, true, false, EEPROM_UP_ADDR),
+                              MenuOption("UP", 45, 0, 2, true, false, EEPROM_UP_RD_ADDR),  
+                              MenuOption("dn", 10*60, 0, 0, false, false, EEPROM_DN_ADDR), 
+                              MenuOption("nt", 60, 30, 5, false, true, EEPROM_NT_ADDR)};
   TimerClock activeTimer = TimerClock(displayLed, &menuOptions[0]);
   
   void goDeepSleep();
