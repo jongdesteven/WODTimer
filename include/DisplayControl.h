@@ -7,7 +7,6 @@
 class DisplayControl: public LedControl_HW_SPI {
   
 private:
-  const byte colonPin;
   const byte csPin;
   char displayText[6];
   bool displayRefresh;
@@ -17,7 +16,7 @@ private:
   bool colonIsOn;
   
   public:
-    DisplayControl(const byte load_csPin, const byte colon);
+    DisplayControl(const byte load_csPin);
     char* getText();
     void displayCharArray(char *text, bool colonOn);
     /* char text[6], segmentsToBlink is bit mask 1=blink */

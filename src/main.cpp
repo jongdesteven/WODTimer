@@ -24,7 +24,7 @@ const char* mqtt_server = "tinysrv";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-DisplayControl ledDisplay(2, 1);
+DisplayControl ledDisplay(2);
 MainMenu mainMenu(ledDisplay);
 PowerStartControlButton pwrBtn(4, mainMenu);
 MenuControlButton menuBtn(12, mainMenu);

@@ -1,16 +1,11 @@
 #include "DisplayControl.h"
 
-DisplayControl::DisplayControl(const byte load_csPin, const byte colon) :
-  colonPin(colon),
+DisplayControl::DisplayControl(const byte load_csPin) :
   csPin(load_csPin)
   {
   }
 
 void DisplayControl::setup(){
-  //pinMode(colonPin, OUTPUT);
-  //digitalWrite(colonPin, LOW);
-  
-  
   sprintf(displayText, "------");
   displayRefresh = false;
   lastBlinkChangeMs = millis();

@@ -102,7 +102,8 @@ TimerMenu::TimerMenu(DisplayControl &displayLedToAttach):
 }
 
 void TimerMenu::setup() {
-  for ( int i = 0; i < (sizeof(menuOptions)/sizeof(MenuOption)) ; i++)
+  //Skip UP, end time is fixed.
+  for ( int i = 1; i < (sizeof(menuOptions)/sizeof(MenuOption)) ; i++)
   {
     menuOptions[i].setup();
   }
@@ -143,6 +144,7 @@ void TimerMenu::startTheTimer(){
   case INTERVAL2:
   case NR_OF_ROUNDS:
     menuMode = MENUSTART;
+    menuOptions[activeMenu].saveChanges();
     break;
   case TIMER_RUNNING:
     activeTimer.startClock();
