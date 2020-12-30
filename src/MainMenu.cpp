@@ -8,10 +8,6 @@ configMenu(displayToAttach)
 }
 
 void MainMenu::setup(){
-  // Start with Main Menu
-  //activeMenu = MENUSTART;
-  //menuModeDisplayed = TIMER;
-
   // Start with Timer Mode
   activeMenu = TIMER;
   menuModeDisplayed = TIMER;
@@ -29,6 +25,8 @@ void MainMenu::loop(){
   case CONFIG:
     configMenu.loop();
     break;
+  case SLEEP:
+    break;
   }
 }
 
@@ -44,6 +42,12 @@ void MainMenu::selectMenu(){
     activeMenu = menuModeDisplayed;
     configMenu.setup();
     break;
+  case SLEEP:
+    displayLed.shutdown(0, true);
+    delay(200);
+    ESP.deepSleep(3*1000000, WAKE_RF_DISABLED);
+    delay(100);
+    break;
   }
 }
 
@@ -55,6 +59,9 @@ void MainMenu::displayMenu(){
     break;
   case CONFIG:
     displayLed.displayCharArray((char*)configName, false);
+    break;
+  case SLEEP:
+    displayLed.displayCharArray((char*)sleepName, false);
     break;
   }
 }
@@ -73,6 +80,8 @@ void MainMenu::powerAction(){
   case CONFIG:
     configMenu.powerAction();
     break;
+  case SLEEP:
+    break;
   }
 }
 
@@ -87,6 +96,8 @@ void MainMenu::menuAction(){
   case CONFIG:
     configMenu.menuAction();
     break;
+  case SLEEP:
+    break;
   }
 }
 
@@ -99,6 +110,9 @@ void MainMenu::incrementAction(){
       menuModeDisplayed = CONFIG;
       break;
     case CONFIG:
+      menuModeDisplayed = SLEEP;
+      break;
+    case SLEEP:
       menuModeDisplayed = TIMER;
       break;
     }
@@ -109,6 +123,8 @@ void MainMenu::incrementAction(){
   case CONFIG:
     configMenu.incrementAction();
     break;
+  case SLEEP:
+    break;
   }
 }
 
@@ -118,10 +134,13 @@ switch(activeMenu){
     switch(menuModeDisplayed){
     case MENUSTART: // Does not exist
     case TIMER:
-      menuModeDisplayed = CONFIG;
+      menuModeDisplayed = SLEEP;
       break;
     case CONFIG:
       menuModeDisplayed = TIMER;
+      break;
+    case SLEEP:
+      menuModeDisplayed = CONFIG;
       break;
     }
     break;
@@ -130,6 +149,8 @@ switch(activeMenu){
     break;
   case CONFIG:
     configMenu.decrementAction();
+    break;
+  case SLEEP:
     break;
   }
 }

@@ -8,6 +8,7 @@ Button::Button(byte attachTo) :
 void Button::setup() {
   pinMode(pin, INPUT_PULLUP);
   state = HIGH;
+  actionSent = false;
 }
 
 void Button::loop() {
@@ -15,16 +16,25 @@ void Button::loop() {
   state = digitalRead(pin);
   if (prevState == HIGH && state == LOW) {
     buttonDownMs = millis();
+    actionSent = false;
   }
   else if (prevState == LOW && state == HIGH) {
-    if (millis() - buttonDownMs < 50) {
+    if (millis() - buttonDownMs < 25) {
     // ignore this for debounce
     }
-    else if (millis() - buttonDownMs < 250) {
+    else if (millis() - buttonDownMs < 1000) {
+      actionSent = true;
       shortClick();
     }
     else  {
+      // actionSent = true;
+      // longClick();
+    }
+  }
+  else if (state == LOW && millis()-buttonDownMs >= 1000){
+    if (actionSent == false){
       longClick();
+      actionSent = true;
     }
   }
 }

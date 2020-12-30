@@ -1,18 +1,20 @@
 #include "TimerMenu.h"
 
 void TimerMenu::goDeepSleep() {
-  Serial.print("Timer: goDeepSleep:");
-
+  //Serial.print("Timer: goDeepSleep:");
   // Turn off Display
   // Serial.print("..Display off..");
-  // displayLed.shutdown(1, true);
-  // Serial.println(".. Start DeepSleep for 3s");
-  // ESP.deepSleep(3*1000000);
+  displayLed.shutdown(0, true);
+  delay(200);
+  //Serial.println(".. Start DeepSleep for 3s");
+  ESP.deepSleep(3*1000000, WAKE_RF_DEFAULT);
+  delay(100);
 }
 
 void TimerMenu::displayMenu(){
   //ToDo: Blinking changeDigit
   int blinkingSegment = 0;
+  bool colonShown = false;
   switch (menuMode){
   case MENUSTART:
     if ( menuOptions[activeMenu].getNrOfRounds() > 0 ) {
@@ -21,26 +23,30 @@ void TimerMenu::displayMenu(){
       sprintf(displayText,"%2s    ", menuOptions[activeMenu].getDisplayName());
     }
     blinkingSegment = 0;
+    colonShown = false;
     break;
   case INTERVAL1:
     sprintf(displayText,"1 %02d%02d", menuOptions[activeMenu].getStartTime1()/60, menuOptions[activeMenu].getStartTime1()%60);
     if (changeDigit == MINUTES) blinkingSegment = 0b001100;
     else if (changeDigit == SECONDS) blinkingSegment = 0b000011;
+    colonShown = true;
     break;
   case INTERVAL2:
     sprintf(displayText,"2 %02d%02d", menuOptions[activeMenu].getStartTime2()/60, menuOptions[activeMenu].getStartTime2()%60);
     if (changeDigit == MINUTES) blinkingSegment = 0b001100;
     else if (changeDigit == SECONDS) blinkingSegment = 0b000011;
+    colonShown = true;
     break;
   case NR_OF_ROUNDS:
     sprintf(displayText,"rd  %02d", menuOptions[activeMenu].getNrOfRounds());
     blinkingSegment = 0b000011;
+    colonShown = false;
     break;
   case TIMER_RUNNING:
     //display is controlled elsewhere
     break;
   }
-  displayLed.displayCharArray(displayText, blinkingSegment, false);
+  displayLed.displayCharArray(displayText, blinkingSegment, colonShown);
 }
 
 // To be called from + / - button
@@ -103,7 +109,7 @@ TimerMenu::TimerMenu(DisplayControl &displayLedToAttach):
 
 void TimerMenu::setup() {
   //Skip UP, end time is fixed.
-  for ( int i = 1; i < (sizeof(menuOptions)/sizeof(MenuOption)) ; i++)
+  for ( unsigned int i = 1; i < (sizeof(menuOptions)/sizeof(MenuOption)) ; i++)
   {
     menuOptions[i].setup();
   }

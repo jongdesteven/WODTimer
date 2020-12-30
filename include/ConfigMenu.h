@@ -1,6 +1,8 @@
 #ifndef CONFIGMENU_H
 #define CONFIGMENU_H
 
+#include <ArduinoOTA.h>
+
 //needed for WifiManager Library
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
@@ -9,6 +11,7 @@
 #include "DisplayControl.h"
 #include "eepromLayout.h"
 #include "EasyBuzzer.h"
+#include "ssid_info.h"
 
 #define WIFI_CONN_TIMEOUT_MS 300000
 
@@ -43,14 +46,18 @@ private:
 
   void setupWifiManager();
   void turnOffWifi();
+  void turnOnOTA();
   
   void displayMenu();
   void displayWifiConfig();
   void displayBrightnessMenu();
   void displayBeepMenu();
+  void displayOtaMenu();
 
   byte displayBrightness = 0;
   byte beepVolume = 0;
+
+  int otaProgress = -1;
 
 public:
   ConfigMenu(DisplayControl &displayToAttach);

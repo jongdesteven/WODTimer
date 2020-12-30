@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include "LedControl_HW_SPI.h"
+#include "eepromLayout.h"
 
 class DisplayControl: public LedControl_HW_SPI {
   
@@ -24,6 +25,7 @@ private:
     void forceDisplayUpdate();
     void setup();
     void loop();
+    void start();
 };
 
 #endif

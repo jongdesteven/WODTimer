@@ -13,11 +13,13 @@ class MainMenu {
   enum MenuMode {
     MENUSTART = 0,
     TIMER = 1,
-    CONFIG = 2
+    CONFIG = 2,
+    SLEEP = 3
   }activeMenu;
   MenuMode menuModeDisplayed;
-  const char* timerName = "  Vod "; //Resembles WOD on 7-seg
+  const char* timerName = "  tine"; //Resembles time on 7-seg
   const char* configName = "  COnF"; // config
+  const char* sleepName = "   OFF";
 
 public:
   MainMenu(DisplayControl &displayToAttach);

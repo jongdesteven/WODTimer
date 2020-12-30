@@ -7,82 +7,128 @@ displayLed(displayToAttach)
 
 void ConfigMenu::turnOffWifi(){
   int disconnect_tries = 0;
-  Serial.print("Turning Off Wifi");
   if (WiFi.status() != WL_CONNECTED){
     wifiManager.stopConfigPortal();
   }
-  // WiFi.disconnect();
-  // WiFi.mode(WIFI_OFF);
-  // WiFi.forceSleepBegin();
+  WiFi.disconnect(true);
+  WiFi.forceSleepBegin();
 
   while (WiFi.status() == WL_CONNECTED && (disconnect_tries++ < 30)){
     //Disconnect in 3sec
     delay(100);
-    Serial.print(".");
   }
 
   if (WiFi.status() == WL_CONNECTED) {
     wifiConfigModeDisplayed = WIFI_CONFIG_ON;
     wifiConfigMode = WIFI_CONFIG_ON;
-    Serial.println("WiFi Connected");
   }
   else {
     wifiConfigModeDisplayed = WIFI_CONFIG_OFF;
     wifiConfigMode = WIFI_CONFIG_OFF;
-    Serial.println("WiFi Disconnected");
+    //Serial.println("WiFi Disconnected");
   }
 }
 
 void ConfigMenu::setupWifiManager() {
-  Serial.print("Wifi: ");
-  // WiFi.forceSleepWake();
-  // WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP  
-  Serial.println("Turned On");
+  char hostname[16];
+  sprintf(hostname, "%s-%06x", "WODtimer",  ESP.getChipId());
+  //Serial.print("Wifi: ");
+  WiFi.hostname(hostname);
+  WiFi.forceSleepWake();
+  //Serial.println("Turned On");
   //Serial.setDebugOutput(true);
   delay(1000);
 
   if (WiFi.status() == WL_CONNECTED){
-    Serial.println("WiFi connected: disconnecting");
+    //Serial.println("WiFi connected: disconnecting");
     WiFi.disconnect();
   }
-
-  Serial.println("WifiManager starting");
+  //Serial.println("WifiManager starting");
   wifiManager.resetSettings();
 
   wifiManager.setHostname("WODTimer_AP");
   wifiManager.setConfigPortalBlocking(false);
 
 	if(wifiManager.autoConnect("WODTimer_AP")){
-		Serial.println("WifiManager connected:)");
-		Serial.print("IP address: ");
-		Serial.println(WiFi.localIP());
+		//Serial.println("WifiManager connected:)");
+		//Serial.print("IP address: ");
+		//Serial.println(WiFi.localIP());
 	}
 	else {
-		Serial.println("Configportal running");
+		//Serial.println("Configportal running");
 	}
   
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("WiFi Connected");
+    //Serial.println("WiFi Connected");
     wifiConfigModeDisplayed = WIFI_CONFIG_ON;
     wifiConfigMode = WIFI_CONFIG_ON;
   }
   else {
-    Serial.println("WiFi NOT Connected");
+    //Serial.println("WiFi NOT Connected");
     wifiConfigModeDisplayed = WIFI_CONFIG_OFF;
     wifiConfigMode = WIFI_CONFIG_OFF;
   }
   wifiOnStartTimeMs = millis();
 }
 
- void ConfigMenu::setup(){
+void ConfigMenu::turnOnOTA(){
+  char hostname[16];
+  sprintf(hostname, "%s-%06x", "WODtimer",  ESP.getChipId());
+  //Serial.print("Wifi: ");
+  WiFi.hostname(hostname);
+  ArduinoOTA.setHostname(hostname);
+  WiFi.forceSleepWake();
+  WiFi.begin(SSID_INFO, SSID_INFO_PASS); // For OTA connect to my WiFi
+
+  // No authentication by default
+  // ArduinoOTA.setPassword("admin");
+  
+  ArduinoOTA.onStart([]() {
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH) {
+      type = "sketch";
+    } else { // U_FS
+      type = "filesystem";
+	  }
+	  // NOTE: if updating FS this would be the place to unmount FS using FS.end()
+	  //Serial.println("Start updating " + type);
+  });
+  ArduinoOTA.onEnd([]() {
+    //Serial.println("\nEnd");
+  });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    //Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    //Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) {
+      //Serial.println("Auth Failed");
+    } else if (error == OTA_BEGIN_ERROR) {
+      //Serial.println("Begin Failed");
+    } else if (error == OTA_CONNECT_ERROR) {
+      //Serial.println("Connect Failed");
+    } else if (error == OTA_RECEIVE_ERROR) {
+      //Serial.println("Receive Failed");
+    } else if (error == OTA_END_ERROR) {
+      //Serial.println("End Failed");
+    }
+  });
+  ArduinoOTA.begin();
+}
+
+void ConfigMenu::setup(){
   activeMenu = MENUSTART;
   menuModeDisplayed = WIFI;
   EasyBuzzer.setPin(15);
 
   displayBrightness = EEPROM.read(EEPROM_BRIGHTNESS_ADDR);
-  if (displayBrightness < 0 || displayBrightness > 15) displayBrightness = 0;
+  if (displayBrightness < 0 || displayBrightness > 15) {
+    displayBrightness = 0;
+  }
   beepVolume = EEPROM.read(EEPROM_BEEP_ADDR);
-  if (beepVolume < 0 || beepVolume > 3) beepVolume = 0;
+  if (beepVolume < 0 || beepVolume > 3){
+    beepVolume = 0; 
+  } 
 
   if (WiFi.getMode() == WIFI_OFF){
    wifiConfigMode = WIFI_CONFIG_OFF;
@@ -104,6 +150,7 @@ void ConfigMenu::loop(){
     displayWifiConfig();
     break;
   case OTA:
+    displayOtaMenu();
     break;
   case BRIGHTNESS:
     displayBrightnessMenu();
@@ -116,11 +163,11 @@ void ConfigMenu::loop(){
 void ConfigMenu::displayBeepMenu(){
   sprintf(displayText, "%2dbEEP", beepVolume);
   displayLed.displayCharArray(displayText, false);
-  EasyBuzzer.update();
+  //EasyBuzzer.update();
 }
 
 void ConfigMenu::displayBrightnessMenu(){
-  sprintf(displayText, "%2ddisp", EEPROM.read(EEPROM_BRIGHTNESS_ADDR));
+  sprintf(displayText, "%2ddisp", displayBrightness);
   displayLed.displayCharArray(displayText, false);
 }
 
@@ -156,7 +203,7 @@ void ConfigMenu::displayWifiConfig(){
         // Turn off again after Timeout
         if (WiFi.status() != WL_CONNECTED && (millis() - wifiOnStartTimeMs >= WIFI_CONN_TIMEOUT_MS)){
           //Connection timeout
-          Serial.println("Wifi connection timeout, no connection");
+          //Serial.println("Wifi connection timeout, no connection");
           turnOffWifi();
         }
       }
@@ -183,6 +230,17 @@ void ConfigMenu::displayMenu(){
     displayLed.displayCharArray((char*)beepName, false);
     break;
   }
+}
+
+void ConfigMenu::displayOtaMenu(){
+  if (WiFi.status() == WL_CONNECTED) {
+    sprintf(displayText, "On OtA");
+  }
+  else{
+    sprintf(displayText, "Of OtA");
+  }
+  displayLed.displayCharArray(displayText, false);
+  ArduinoOTA.handle();
 }
 
 void ConfigMenu::returnAction(){
@@ -234,6 +292,8 @@ void ConfigMenu::menuAction(){
       }
       break;
     case OTA:
+      activeMenu = menuModeDisplayed;
+      turnOnOTA();
       break;
     case BRIGHTNESS:
       activeMenu = menuModeDisplayed;
@@ -256,6 +316,7 @@ void ConfigMenu::menuAction(){
     }
     break;
   case OTA:
+    turnOnOTA();
     break;
   case BRIGHTNESS:
     break;

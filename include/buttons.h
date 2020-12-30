@@ -7,6 +7,7 @@ class Button {
 private:
   const byte pin;
   int state;
+  bool actionSent;
   unsigned long buttonDownMs;
 
   protected:

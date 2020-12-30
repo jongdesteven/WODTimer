@@ -13,7 +13,7 @@ private:
   MenuOption *activeOption;
   char displayText[6];
   unsigned long startTimeMs;
-  int activeSecond;
+  unsigned int activeSecond;
   byte beepVolume;
 
   enum State {

@@ -7,52 +7,68 @@ TimerClock::TimerClock(DisplayControl &displayLedToAttach, MenuOption *optionToA
 }
 
 void TimerClock::beepAtTheEnd() {
-  int beepFreq = 0;
+  unsigned int beepFreq = 0;
+  unsigned int shortBeep = 500;
+  unsigned int longBeep = 1000;
   if (beepVolume == 0) return;
   else if (beepVolume == 1) beepFreq = 3000;
   else if ( beepVolume == 2) beepFreq = 2000;
 
-  if (state == PRECOUNTDOWN ){
-    if (activeSecond == 10){
-      EasyBuzzer.singleBeep(
-                  beepFreq, 	// Frequency in hertz(HZ).  
-                  1000 	// Duration of the beep in milliseconds(ms). 
-                  //done		// [Optional] Function to call when done.
-                  );
-      Serial.println("Beeeeep!");
+  switch (state) {
+  case PRECOUNTDOWN:
+    if (activeSecond >= 7 && activeSecond < 10){
+      EasyBuzzer.singleBeep(beepFreq, shortBeep);
     }
-    else if (activeSecond >= 7){
-      EasyBuzzer.singleBeep(
-                  beepFreq, 	// Frequency in hertz(HZ).  
-                  500	// Duration of the beep in milliseconds(ms). 
-                  //done		// [Optional] Function to call when done.
-                  );
-      Serial.println("Beep!");
+    break;
+  case RUN_UP: //Beeps at end of interval
+    if (activeSecond == 0){
+      EasyBuzzer.singleBeep(beepFreq, longBeep);
     }
-  }
-  else if (secondsLeftThisInterval() == 0) {
-    EasyBuzzer.singleBeep(
-                  beepFreq, 	// Frequency in hertz(HZ).  
-                  1000 	// Duration of the beep in milliseconds(ms). 
-                  //done		// [Optional] Function to call when done.
-                  );
-    Serial.println("Beeeeep!");
+    else if (secondThisInterval() == activeOption->getStartTime1()){
+      if (roundsLeft() == 1){ // End of the timer
+        EasyBuzzer.singleBeep(beepFreq, longBeep);
+      }
+      else { //Round end, rounds left
+        EasyBuzzer.singleBeep(beepFreq, shortBeep);
+      }
+    }
+    break;
+  case RUN_DOWN: //Beeps at start of interval
+    if (roundsLeft() == 0){ // End of the timer
+      EasyBuzzer.singleBeep(beepFreq, longBeep);
+    }
+    else if ( intervalsIn()%2 && secondsLeftThisInterval() == activeOption->getStartTime1() ) {
+      if (intervalsIn() == 1){ //Long at start of first interval as start
+        EasyBuzzer.singleBeep(beepFreq, longBeep);
+      }
+      else{ 
+        EasyBuzzer.singleBeep(beepFreq, shortBeep);
+      }
+    }
+    else if ( !(intervalsIn()%2) && secondsLeftThisInterval() == activeOption->getStartTime2() ) {
+      EasyBuzzer.singleBeep(beepFreq, shortBeep);
+    }
+    break;
+  case PAUSE:
+  case TIMER_END:
+    break;
   }
 }
 
 int TimerClock::roundsIn(){
   int roundTime = activeOption->getStartTime1() + activeOption->getStartTime2();
-  return ceil( (double)activeSecond / (double)roundTime );  \
+  return ceil( (double)activeSecond / (double)roundTime ); 
 }
 
 int TimerClock::secondThisRound() {
   int roundTime = activeOption->getStartTime1() + activeOption->getStartTime2();
-  return activeSecond - 1 - ( (roundsIn()-1) * roundTime );
+  return activeSecond-1 - ((roundsIn()-1) * roundTime - 1);
+  // return activeSecond - 1 - ( (roundsIn()-1) * roundTime );
 }
 
 int TimerClock::secondThisInterval() {
   int secondThisInterval = 0;
-  if ( secondThisRound() < activeOption->getStartTime1() ) {
+  if ( secondThisRound() <= activeOption->getStartTime1() ) {
     secondThisInterval = secondThisRound();
   }
   else {
@@ -63,7 +79,7 @@ int TimerClock::secondThisInterval() {
 
 int TimerClock::intervalsIn() {
   int intervalsIn = 0;
-  if ( secondThisRound() < activeOption->getStartTime1() ) {
+  if ( secondThisRound() <= activeOption->getStartTime1() ) {
     intervalsIn = 2*(roundsIn()-1) + 1;
   }
   else {
@@ -93,10 +109,10 @@ int TimerClock::intervalsLeft() {
 int TimerClock::secondsLeftThisInterval() {
   int secondsLeftThisInterval = 0;
   if ( intervalsIn() %2 ) {
-    secondsLeftThisInterval = activeOption->getStartTime1() - secondThisInterval() - 1;
+    secondsLeftThisInterval = activeOption->getStartTime1() - secondThisInterval() +1;
   }
   else {
-    secondsLeftThisInterval = activeOption->getStartTime2() - secondThisInterval() - 1;
+    secondsLeftThisInterval = activeOption->getStartTime2() - secondThisInterval() +1;
   }
   return secondsLeftThisInterval;
 }
@@ -106,12 +122,14 @@ void TimerClock::startClock() {
   case PRECOUNTDOWN:
     if(activeOption->getCountDirectionUp()){
       state = RUN_UP;
+      activeSecond = 0;
+      startTimeMs = millis();
     }
     else{
       state = RUN_DOWN;
+      activeSecond = 1;
+      startTimeMs = millis()-1000;
     }
-    activeSecond = 1;
-    startTimeMs = millis()-1000;
     break;
   case RUN_UP:
   case RUN_DOWN:
@@ -147,24 +165,31 @@ void TimerClock::setup(MenuOption *optionToAttach) {
 }
 
 void TimerClock::loop() {
-  if ( (millis() - startTimeMs) >= (unsigned long)activeSecond*1000 ) {
+  if ( (millis()-startTimeMs) >= activeSecond*1000 ) {
     switch (state) {
     case PRECOUNTDOWN :
-      // Count down 10-0
-      if (activeSecond <= 9) {
-        sprintf(displayText,"    %02d", 10-activeSecond);
-        // Beep short short long on last 3 seconds
-        beepAtTheEnd();
-        activeSecond++;
+      beepAtTheEnd();
+      if (activeSecond >= 10){
+        startClock();
       }
       else {
-        beepAtTheEnd();
-        startClock();
+        sprintf(displayText,"    %2d", 10-activeSecond);
+        activeSecond++; 
       }
       displayLed.displayCharArray(displayText, false);
       break;
     case RUN_UP:
-      if (roundsLeft() > 0){
+      beepAtTheEnd();
+      if (activeSecond == 0){
+        if ( activeOption->getNrOfRounds() == 0){
+          sprintf(displayText,"%2s0000", activeOption->getDisplayName());
+        }
+        else{
+          sprintf(displayText," 10000");
+        }
+        activeSecond++;
+      }
+      else if (roundsLeft() > 0){
         if ( activeOption->getNrOfRounds() > 0){
           sprintf(displayText,"%2d%02d%02d", roundsIn(), secondThisInterval()/60, secondThisInterval()%60);
         }
@@ -176,7 +201,6 @@ void TimerClock::loop() {
             sprintf(displayText,"%02d%02d%02d", secondThisInterval()/3600, (secondThisInterval()/60)%60, secondThisInterval()%60);
           }
         } 
-        beepAtTheEnd();
         activeSecond++;
       }
       else {
@@ -185,20 +209,26 @@ void TimerClock::loop() {
       displayLed.displayCharArray(displayText, true);
       break;
     case RUN_DOWN:
+      beepAtTheEnd();
       if (roundsLeft() > 0){
         if (activeOption->getStartTime2() > 0) {
-          sprintf(displayText,"%02d%02d%02d", intervalsLeft(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
+          sprintf(displayText,"%2d%02d%02d", intervalsLeft(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
         }
         else if ( activeOption->getNrOfRounds() > 0){
-          sprintf(displayText,"%02d%02d%02d", roundsLeft(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
+          sprintf(displayText,"%2d%02d%02d", roundsLeft(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
         }
         else {
           sprintf(displayText,"%2s%02d%02d", activeOption->getDisplayName(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
         }
-        beepAtTheEnd();
         activeSecond++;
       }
-      else {
+      else { //roundsLeft == 0
+        if (activeOption->getStartTime2() > 0 || activeOption->getNrOfRounds() > 0){
+          sprintf(displayText," 00000");
+        }
+        else {
+          sprintf(displayText,"%2s0000", activeOption->getDisplayName());
+        }
         state = TIMER_END;
       }
       displayLed.displayCharArray(displayText, true);
@@ -211,5 +241,4 @@ void TimerClock::loop() {
       break;
     }
   }
-  EasyBuzzer.update();
 }
