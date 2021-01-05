@@ -21,6 +21,7 @@ PowerStartControlButton pwrBtn(5, mainMenu);
 MenuControlButton menuBtn(12, mainMenu);
 MinusButton minBtn(4, mainMenu);
 PlusButton plusBtn(3, mainMenu); 
+
 bool wakeFromDeepSleep(){
   if (ESP.getResetInfoPtr()->reason == REASON_DEEP_SLEEP_AWAKE){
     pinMode(5, INPUT_PULLUP);
@@ -34,15 +35,13 @@ bool wakeFromDeepSleep(){
   else { 
     return true;
   }
-  
 }
 
 void setup() {
-  //Serial.begin(115200);
   if (!wakeFromDeepSleep()){
-    ledDisplay.setup();
-    delay(200);
-    //Serial.println("Button D3/GPIO0 not pressed, going to DeepSleep for 3s");
+    // ledDisplay.setup();
+    // delay(200);
+
     // ESP.deepSleep(3*1000000, WAKE_RF_DISABLED); //Final version
     ESP.deepSleep(3*1000000, WAKE_RF_DEFAULT);
     delay(100);
