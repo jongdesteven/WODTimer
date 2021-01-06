@@ -1,7 +1,16 @@
 #include "buttons.h"
 
-Button::Button(byte attachTo) :
-  pin(attachTo)
+Button::Button(byte attachTo, callBackFunction callback_shortPress) :
+  pin(attachTo),
+  shortPressFunction(callback_shortPress),
+  longPressFunction(nullptr)
+{
+}
+
+Button::Button(byte attachTo, callBackFunction callback_shortPress, callBackFunction callback_longPress) :
+  pin(attachTo),
+  shortPressFunction(callback_shortPress),
+  longPressFunction(callback_longPress)
 {
 }
 
@@ -24,68 +33,22 @@ void Button::loop() {
     }
     else if (millis() - buttonDownMs < 1000) {
       actionSent = true;
-      shortClick();
+      shortPressFunction();
     }
     else  {
       // actionSent = true;
+      if (longPressFunction != nullptr){
+        longPressFunction();
+      }
       // longClick();
     }
   }
   else if (state == LOW && millis()-buttonDownMs >= 1000){
     if (actionSent == false){
-      longClick();
+      if (longPressFunction != nullptr){
+        longPressFunction();
+      }
       actionSent = true;
     }
   }
-}
-
-PowerStartControlButton::PowerStartControlButton(byte attachTo, MainMenu &menuAttach) :
-  Button(attachTo),
-  menu(menuAttach)
-{
-}
-void PowerStartControlButton::shortClick() {
-  // Start Timer
-  menu.powerAction();
-}
-void PowerStartControlButton::longClick() {
-  // Wake from/Go To sleep
-  menu.returnAction();
-}
-
-MenuControlButton::MenuControlButton(byte attachTo, MainMenu &menuAttach) :
-  Button(attachTo),
-  menu(menuAttach)
-{
-}
-void MenuControlButton::shortClick() {
-  //Next changeInterval
-  menu.menuAction();
-}
-void MenuControlButton::longClick() {
-  //Do Nothing
-}
-
-MinusButton::MinusButton(byte attachTo, MainMenu &menuAttach) :
-  Button(attachTo),
-  menu(menuAttach)
-{
-}
-void MinusButton::shortClick() {
-  menu.decrementAction();
-}
-void MinusButton::longClick() {
-  // Do Nothing
-}
-
-PlusButton::PlusButton(byte attachTo, MainMenu &menuAttach) :
-  Button(attachTo),
-  menu(menuAttach)
-{
-}
-void PlusButton::shortClick() {
-  menu.incrementAction();
-}
-void PlusButton::longClick() {
-  // Do nothing
 }

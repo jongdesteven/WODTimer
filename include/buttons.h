@@ -1,7 +1,7 @@
 #ifndef BUTTONS_H
 #define BUTTONS_H
 
-#include "MainMenu.h"
+#include <Arduino.h>
 
 class Button { 
 private:
@@ -9,63 +9,15 @@ private:
   int state;
   bool actionSent;
   unsigned long buttonDownMs;
-
-  protected:
-    virtual void shortClick() = 0;
-    virtual void longClick() = 0;
+  typedef void (*callBackFunction)();
+  callBackFunction shortPressFunction;
+  callBackFunction longPressFunction;
 
   public:
-    Button(byte attachTo);
+    Button(byte attachTo, callBackFunction callback_shortPress);
+    Button(byte attachTo, callBackFunction callback_shortPress, callBackFunction callback_longPress);
 		void setup();
 		void loop();
-};
-
-class PowerStartControlButton: public Button {
-private:
-  MainMenu &menu;
-
-public:
-	PowerStartControlButton(byte attachTo, MainMenu &menuAttach);
-
-protected:
-  void shortClick();
-  void longClick();
-};
-
-class MenuControlButton: public Button {
-private:
-  MainMenu &menu;
-  
-public:
-	MenuControlButton(byte attachTo, MainMenu &menuAttach);
-
-protected:
-  void shortClick();
-  void longClick();
-};
-
-class MinusButton: public Button {
-private:
-  MainMenu &menu;
-  
-public:
-	MinusButton(byte attachTo, MainMenu &menuAttach);
-
-protected:
-  void shortClick();
-  void longClick();
-};
-
-class PlusButton: public Button {
-private:
-  MainMenu &menu;
-  
-public:
-	PlusButton(byte attachTo, MainMenu &menuAttach);
-
-protected:
-  void shortClick();
-  void longClick();
 };
 
 #endif
