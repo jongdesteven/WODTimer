@@ -1,8 +1,7 @@
 #include "TimerClock.h"
 
-TimerClock::TimerClock(DisplayControl &displayLedToAttach, MenuOption *optionToActivate) :
-  displayLed(displayLedToAttach),
-  activeOption(optionToActivate)
+TimerClock::TimerClock(DisplayControl &displayLedToAttach) :
+  displayLed(displayLedToAttach)
 {
 }
 

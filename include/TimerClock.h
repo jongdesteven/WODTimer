@@ -24,7 +24,6 @@ private:
     TIMER_END
   }state;
   
-  
   void beepAtTheEnd();
   int roundsIn();
   int secondThisRound();
@@ -35,7 +34,7 @@ private:
   int secondsLeftThisInterval();
 
 public:
-  TimerClock(DisplayControl &displayLedToAttach, MenuOption *optionToActivate);
+  TimerClock(DisplayControl &displayLedToAttach);
   void startClock();
   void setup(MenuOption *optionToAttach);
   void loop();

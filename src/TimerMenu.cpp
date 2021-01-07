@@ -1,16 +1,5 @@
 #include "TimerMenu.h"
 
-void TimerMenu::goDeepSleep() {
-  //Serial.print("Timer: goDeepSleep:");
-  // Turn off Display
-  // Serial.print("..Display off..");
-  displayLed.shutdown(0, true);
-  delay(200);
-  //Serial.println(".. Start DeepSleep for 3s");
-  ESP.deepSleep(3*1000000, WAKE_RF_DEFAULT);
-  delay(100);
-}
-
 void TimerMenu::displayMenu(){
   //ToDo: Blinking changeDigit
   int blinkingSegment = 0;
@@ -41,9 +30,6 @@ void TimerMenu::displayMenu(){
     sprintf(displayText,"rd  %02d", menuOptions[activeMenu].getNrOfRounds());
     blinkingSegment = 0b000011;
     colonShown = false;
-    break;
-  case TIMER_RUNNING:
-    //display is controlled elsewhere
     break;
   }
   displayLed.displayCharArray(displayText, blinkingSegment, colonShown);
@@ -102,21 +88,16 @@ void TimerMenu::decrementIntervalRounds(){
   }
 }
 
-TimerMenu::TimerMenu(DisplayControl &displayLedToAttach):
-  displayLed(displayLedToAttach)
+TimerMenu::TimerMenu(DisplayControl &displayLedToAttach, MenuOption (&menuOptionsToAttach)[4]):
+  displayLed(displayLedToAttach),
+  menuOptions(menuOptionsToAttach)
 {
 }
 
 void TimerMenu::setup() {
-  //Skip UP, end time is fixed.
-  for ( unsigned int i = 1; i < (sizeof(menuOptions)/sizeof(MenuOption)) ; i++)
-  {
-    menuOptions[i].setup();
-  }
   activeMenu = 0;
   changeDigit = MINUTES;
   menuMode = MENUSTART;
-  lastActionMs = millis();
 }
 
 void TimerMenu::loop() {
@@ -126,25 +107,16 @@ void TimerMenu::loop() {
   case NR_OF_ROUNDS:
   case MENUSTART:
     displayMenu();
-    if ( (millis() - lastActionMs) >= (60*1000)){
-      goDeepSleep();
-    }
-    break;
-  case TIMER_RUNNING:
-    activeTimer.loop();
     break;
   }
 }
 
 // To be called by Power/Start Button short press
 //Sequence: Timer <-> Start <-> int1, int2, rnds
-void TimerMenu::startTheTimer(){
+int TimerMenu::returnMenu(){
   switch (menuMode) {
   case MENUSTART:
-    activeTimer.setup(&menuOptions[activeMenu]);
-    activeTimer.startClock();
-
-    menuMode = TIMER_RUNNING;
+    return activeMenu;
     break;
   case INTERVAL1:
   case INTERVAL2:
@@ -152,18 +124,12 @@ void TimerMenu::startTheTimer(){
     menuMode = MENUSTART;
     menuOptions[activeMenu].saveChanges();
     break;
-  case TIMER_RUNNING:
-    activeTimer.startClock();
-    break;
   }
-  lastActionMs = millis();
+  return -1;
 }
 
 void TimerMenu::advanceMenu(){
   switch (menuMode){
-  case TIMER_RUNNING:
-    menuMode = MENUSTART;
-    break;
   case MENUSTART:
     if (menuOptions[activeMenu].getNrOfRounds() > 0 || !menuOptions[activeMenu].getCountDirectionUp()){
       changeDigit = MINUTES;
@@ -200,7 +166,6 @@ void TimerMenu::advanceMenu(){
     menuMode = INTERVAL1;
     break;
   }
-  lastActionMs = millis();
 }
 
 // To be called by button +
@@ -214,11 +179,8 @@ void TimerMenu::incrementOption() {
   case NR_OF_ROUNDS:
     incrementIntervalRounds();
     break;
-  case TIMER_RUNNING:
-    break;
   }
   displayLed.forceDisplayUpdate();
-  lastActionMs = millis();
 }
 
 // To be called by button -
@@ -232,9 +194,6 @@ void TimerMenu::decrementOption() {
   case NR_OF_ROUNDS:
     decrementIntervalRounds();
     break;
-  case TIMER_RUNNING:
-    break;
   }
   displayLed.forceDisplayUpdate();
-  lastActionMs = millis();
 }
