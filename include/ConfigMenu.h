@@ -3,61 +3,43 @@
 
 #include <ArduinoOTA.h>
 
-//needed for WifiManager Library
-#include <DNSServer.h>
-#include <ESP8266WebServer.h>
-#include <WiFiManager.h>         //https://github.com/tzapu/WiFiManager
-
 #include "DisplayControl.h"
 #include "eepromLayout.h"
 #include "EasyBuzzer.h"
 #include "ssid_info.h"
 
-#define WIFI_CONN_TIMEOUT_MS 300000
-
 class ConfigMenu {
 
 private:
   DisplayControl &displayLed;
-  WiFiManager wifiManager;
   char displayText[6];
 
   enum MenuMode {
     MENUSTART = 0,
-    WIFI = 1,
-    OTA = 2,
-    BRIGHTNESS = 3,
-    BEEP = 4
+    OTA = 1,
+    BRIGHTNESS = 2,
+    BEEP = 3,
+    MESH = 4
   }activeMenu;
   MenuMode menuModeDisplayed;
 
-  enum WifiConfig {
-    WIFI_CONFIG_OFF = 0,
-    WIFI_CONFIG_ON= 1
-  }wifiConfigMode;
-  WifiConfig wifiConfigModeDisplayed;
-  
-  const char* wifiName = "  vifi"; //
   const char* otaName = "  OtA "; // 
   const char* brightnessName = "  disp"; // 
-  const char* beepName = "  bEEP"; // 
+  const char* beepName = "  bEEP"; //
+  const char* meshName = "  MESH";
   
-  unsigned long wifiOnStartTimeMs;
-
-  void setupWifiManager();
-  void turnOffWifi();
   void turnOnOTA();
   
   void displayMenu();
-  void displayWifiConfig();
   void displayBrightnessMenu();
   void displayBeepMenu();
   void displayOtaMenu();
+  void displayMeshMenu();
 
   byte displayBrightness = 0;
   byte beepVolume = 0;
 
-  int otaProgress = -1;
+  bool meshActive = true; // Change to default off
 
 public:
   ConfigMenu(DisplayControl &displayToAttach);
@@ -67,6 +49,8 @@ public:
   void menuAction();
   void incrementAction();
   void decrementAction();
+
+  bool meshNetworkActive();
   
   void setup();
   void loop();

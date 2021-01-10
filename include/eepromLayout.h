@@ -4,6 +4,7 @@
 #include <EEPROM.h>
 
 enum EepromLayout {
+EEPROM_DO_NOT_SAVE = -1,
 EEPROM_BRIGHTNESS_ADDR = 0,
 EEPROM_BEEP_ADDR = 1,
 EEPROM_UP_ADDR = 10,

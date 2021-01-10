@@ -1,18 +1,32 @@
 #include "MenuOption.h"
 
-MenuOption::MenuOption(const char* name, int time1, int time2, int rounds, bool countUp, bool interval, EepromLayout address) :
-  displayName(name),
-  startTimeInterval1Sec(time1),
-  startTimeInterval2Sec(time2),
-  nrOfRounds(rounds),
-  countDirectionUp(countUp),
-  includesInterval(interval),
-  eepromAddress(address)
-{
+MenuOption::MenuOption(const char* name, unsigned long time1, unsigned long time2, int rounds, bool countUp, EepromLayout eeAddress) {
+  strcpy(displayName, name);
+  startTimeInterval1Sec = time1;
+  startTimeInterval2Sec = time2;
+  nrOfRounds = rounds;
+  countDirectionUp = countUp;
+  eepromAddress = eeAddress;
+}
+
+MenuOption::MenuOption(){
+}
+
+void MenuOption::initialize(const char* name, unsigned long time1, unsigned long  time2, int rounds, bool countUp, EepromLayout eeAddress){
+  strcpy(displayName, name);
+  startTimeInterval1Sec = time1;
+  startTimeInterval2Sec = time2;
+  nrOfRounds = rounds;
+  countDirectionUp = countUp;
+  eepromAddress = eeAddress;
 }
 
 void MenuOption::setup(){
   bool changes = false;
+  if (eepromAddress == EEPROM_DO_NOT_SAVE){
+    return;
+  }
+
   if ( EEPROM.read(eepromAddress+0)<0 || EEPROM.read(eepromAddress+0)>59){
     changes = true;
   } 
@@ -54,11 +68,11 @@ const char* MenuOption::getDisplayName(){
   return displayName;
 }
 
-int MenuOption::getStartTime1(){
+unsigned long  MenuOption::getStartTime1(){
   return startTimeInterval1Sec;
 }
 
-int MenuOption::getStartTime2(){
+unsigned long  MenuOption::getStartTime2(){
   return startTimeInterval2Sec;
 }
 
@@ -96,6 +110,10 @@ void MenuOption::changeTimeInterval(int interval, int changeSec){
 
 int MenuOption::saveChanges(){
   bool changes = false;
+  if (eepromAddress == EEPROM_DO_NOT_SAVE){
+    return 0;
+  }
+
   if ( (startTimeInterval1Sec/60) != EEPROM.read(eepromAddress+0) ){
     EEPROM.write(eepromAddress+0, startTimeInterval1Sec/60);
     changes = true;

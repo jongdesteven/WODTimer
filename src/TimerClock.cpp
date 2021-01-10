@@ -154,13 +154,26 @@ void TimerClock::startClock() {
 
 void TimerClock::setup(MenuOption *optionToAttach) {
   activeOption = optionToAttach;
-  sprintf(displayText, "      ");
+  sprintf(displayText, "gO    ");
   state = TIMER_END;
   EasyBuzzer.setPin(15);
   beepVolume = EEPROM.read(EEPROM_BEEP_ADDR);
   if (beepVolume < 0 || beepVolume > 2){
     beepVolume = 0;
   }
+  Serial.println("Setup:");
+  Serial.print("name: ");
+  Serial.println(activeOption->getDisplayName());
+  Serial.print("time1: ");
+  Serial.println(activeOption->getStartTime1());
+  Serial.print("time2: ");
+  Serial.println(activeOption->getStartTime2());
+  Serial.print("rounds: ");
+  Serial.println(activeOption->getNrOfRounds());
+  Serial.print("dir: ");
+  if ( activeOption->getCountDirectionUp()){ Serial.println("Up");}
+  else { Serial.println("Down");}
+
 }
 
 void TimerClock::loop() {

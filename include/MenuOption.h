@@ -1,24 +1,26 @@
 #ifndef MENUOPTION_H
 #define MENUOPTION_H
 
+#include <Arduino.h>
 #include "eepromLayout.h"
 
 class MenuOption {
 private:
-  const char* displayName; //2 green characters
-  int startTimeInterval1Sec;
-  int startTimeInterval2Sec;
-  int nrOfRounds;
-  bool countDirectionUp;
-  bool includesInterval;
-  EepromLayout eepromAddress;
+  char* displayName = "--"; //2 green characters
+  unsigned long startTimeInterval1Sec = 60;
+  unsigned long startTimeInterval2Sec = 0;
+  int nrOfRounds = 0;
+  bool countDirectionUp = true;
+  EepromLayout eepromAddress = EEPROM_DO_NOT_SAVE;
 
 public:
-  MenuOption(const char* name, int time1, int time2, int rounds, bool countUp, bool interval, EepromLayout eepromAddress);
+  MenuOption(const char* name, unsigned long time1, unsigned long  time2, int rounds, bool countUp, EepromLayout eeAddress);
+  MenuOption();
+  void initialize(const char* name, unsigned long time1, unsigned long  time2, int rounds, bool countUp, EepromLayout eeAddress);
   void setup();
   const char* getDisplayName();
-  int getStartTime1();
-  int getStartTime2();
+  unsigned long getStartTime1();
+  unsigned long getStartTime2();
   int getNrOfRounds();
   bool getCountDirectionUp();
   void changeRounds(int change);

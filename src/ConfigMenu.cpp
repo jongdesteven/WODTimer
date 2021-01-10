@@ -5,72 +5,6 @@ displayLed(displayToAttach)
 {
 }
 
-void ConfigMenu::turnOffWifi(){
-  int disconnect_tries = 0;
-  if (WiFi.status() != WL_CONNECTED){
-    wifiManager.stopConfigPortal();
-  }
-  WiFi.disconnect(true);
-  WiFi.forceSleepBegin();
-
-  while (WiFi.status() == WL_CONNECTED && (disconnect_tries++ < 30)){
-    //Disconnect in 3sec
-    delay(100);
-  }
-
-  if (WiFi.status() == WL_CONNECTED) {
-    wifiConfigModeDisplayed = WIFI_CONFIG_ON;
-    wifiConfigMode = WIFI_CONFIG_ON;
-  }
-  else {
-    wifiConfigModeDisplayed = WIFI_CONFIG_OFF;
-    wifiConfigMode = WIFI_CONFIG_OFF;
-    //Serial.println("WiFi Disconnected");
-  }
-}
-
-void ConfigMenu::setupWifiManager() {
-  char hostname[16];
-  sprintf(hostname, "%s-%06x", "WODtimer",  ESP.getChipId());
-  //Serial.print("Wifi: ");
-  WiFi.hostname(hostname);
-  WiFi.forceSleepWake();
-  //Serial.println("Turned On");
-  //Serial.setDebugOutput(true);
-  delay(1000);
-
-  if (WiFi.status() == WL_CONNECTED){
-    //Serial.println("WiFi connected: disconnecting");
-    WiFi.disconnect();
-  }
-  //Serial.println("WifiManager starting");
-  wifiManager.resetSettings();
-
-  wifiManager.setHostname("WODTimer_AP");
-  wifiManager.setConfigPortalBlocking(false);
-
-	if(wifiManager.autoConnect("WODTimer_AP")){
-		//Serial.println("WifiManager connected:)");
-		//Serial.print("IP address: ");
-		//Serial.println(WiFi.localIP());
-	}
-	else {
-		//Serial.println("Configportal running");
-	}
-  
-  if (WiFi.status() == WL_CONNECTED) {
-    //Serial.println("WiFi Connected");
-    wifiConfigModeDisplayed = WIFI_CONFIG_ON;
-    wifiConfigMode = WIFI_CONFIG_ON;
-  }
-  else {
-    //Serial.println("WiFi NOT Connected");
-    wifiConfigModeDisplayed = WIFI_CONFIG_OFF;
-    wifiConfigMode = WIFI_CONFIG_OFF;
-  }
-  wifiOnStartTimeMs = millis();
-}
-
 void ConfigMenu::turnOnOTA(){
   char hostname[16];
   sprintf(hostname, "%s-%06x", "WODtimer",  ESP.getChipId());
@@ -118,7 +52,7 @@ void ConfigMenu::turnOnOTA(){
 
 void ConfigMenu::setup(){
   activeMenu = MENUSTART;
-  menuModeDisplayed = WIFI;
+  menuModeDisplayed = BRIGHTNESS;
   EasyBuzzer.setPin(15);
 
   displayBrightness = EEPROM.read(EEPROM_BRIGHTNESS_ADDR);
@@ -129,25 +63,12 @@ void ConfigMenu::setup(){
   if (beepVolume < 0 || beepVolume > 3){
     beepVolume = 0; 
   } 
-
-  if (WiFi.getMode() == WIFI_OFF){
-   wifiConfigMode = WIFI_CONFIG_OFF;
-   wifiConfigModeDisplayed = WIFI_CONFIG_OFF;
-  }
-  else {
-    wifiConfigMode = WIFI_CONFIG_ON;
-    wifiConfigModeDisplayed = WIFI_CONFIG_ON;
-  }
-  wifiOnStartTimeMs = 0;
  }
 
 void ConfigMenu::loop(){
   switch(activeMenu){
   case MENUSTART: // Does not exist
     displayMenu();
-    break;
-  case WIFI:
-    displayWifiConfig();
     break;
   case OTA:
     displayOtaMenu();
@@ -157,6 +78,10 @@ void ConfigMenu::loop(){
     break;
   case BEEP:
     displayBeepMenu();
+    break;
+  case MESH:
+    displayMeshMenu();
+    break;
   }
 }
 
@@ -171,55 +96,10 @@ void ConfigMenu::displayBrightnessMenu(){
   displayLed.displayCharArray(displayText, false);
 }
 
-void ConfigMenu::displayWifiConfig(){
-  switch (wifiConfigModeDisplayed){
-  case WIFI_CONFIG_OFF:
-    switch (wifiConfigMode) {
-    case WIFI_CONFIG_OFF:
-      sprintf(displayText, "vifiof");
-      displayLed.displayCharArray(displayText, true);
-      break;
-    case WIFI_CONFIG_ON:
-      sprintf(displayText, "vifiof");
-      displayLed.displayCharArray(displayText, 0b000011, true);
-      break;
-    }
-    break;
-  case WIFI_CONFIG_ON:
-    switch (wifiConfigMode) {
-    case WIFI_CONFIG_OFF:
-      sprintf(displayText, "vifion");
-      displayLed.displayCharArray(displayText, 0b000011, true);
-      break;
-    case WIFI_CONFIG_ON:
-      if (WiFi.status() == WL_CONNECTED) {
-        sprintf(displayText, "vifion");
-        displayLed.displayCharArray(displayText, true);
-      }
-      else {
-        sprintf(displayText, "notCon");
-        displayLed.displayCharArray(displayText, true);
-       
-        // Turn off again after Timeout
-        if (WiFi.status() != WL_CONNECTED && (millis() - wifiOnStartTimeMs >= WIFI_CONN_TIMEOUT_MS)){
-          //Connection timeout
-          //Serial.println("Wifi connection timeout, no connection");
-          turnOffWifi();
-        }
-      }
-      break;
-    }
-    break;  
-  }
-  wifiManager.process();
-}
 
 void ConfigMenu::displayMenu(){
   switch(menuModeDisplayed){
   case MENUSTART: // Does not exist
-  case WIFI:
-    displayLed.displayCharArray((char*)wifiName, false);
-    break;
   case OTA:
     displayLed.displayCharArray((char*)otaName, false);
     break;
@@ -228,6 +108,9 @@ void ConfigMenu::displayMenu(){
     break;
   case BEEP:
     displayLed.displayCharArray((char*)beepName, false);
+    break;
+  case MESH:
+    displayLed.displayCharArray((char*)meshName, false);
     break;
   }
 }
@@ -243,6 +126,16 @@ void ConfigMenu::displayOtaMenu(){
   ArduinoOTA.handle();
 }
 
+void ConfigMenu::displayMeshMenu(){
+  if (meshActive){
+    sprintf(displayText, "OnMESH");
+  }
+  else {
+    sprintf(displayText, "OfMESH");
+  }
+  displayLed.displayCharArray(displayText, false);
+}
+
 void ConfigMenu::returnAction(){
   activeMenu = MENUSTART;
 }
@@ -250,9 +143,6 @@ void ConfigMenu::returnAction(){
 void ConfigMenu::powerAction(){
   switch(activeMenu){
   case MENUSTART:
-    break;
-  case WIFI:
-    activeMenu = MENUSTART;
     break;
   case OTA:
     activeMenu = MENUSTART;
@@ -271,6 +161,9 @@ void ConfigMenu::powerAction(){
       EEPROM.commit();
     }
     break;
+  case MESH:
+    activeMenu = MENUSTART;
+    break;
   }
 }
 
@@ -279,17 +172,6 @@ void ConfigMenu::menuAction(){
   case MENUSTART:
     switch(menuModeDisplayed){
     case MENUSTART: // Does not exist
-      break;
-    case WIFI:
-      activeMenu = menuModeDisplayed;
-      switch (wifiConfigMode) {
-      case WIFI_CONFIG_ON:
-        wifiConfigModeDisplayed = WIFI_CONFIG_ON;
-        break;
-      case WIFI_CONFIG_OFF:
-        wifiConfigModeDisplayed = WIFI_CONFIG_OFF;
-        break;
-      }
       break;
     case OTA:
       activeMenu = menuModeDisplayed;
@@ -301,18 +183,8 @@ void ConfigMenu::menuAction(){
     case BEEP:
       activeMenu = menuModeDisplayed;
       break;
-    }
-    break;
-  case WIFI:
-    switch (wifiConfigModeDisplayed){
-    case WIFI_CONFIG_OFF:
-      wifiConfigMode = wifiConfigModeDisplayed;
-      turnOffWifi();
-      break;
-    case WIFI_CONFIG_ON:
-      wifiConfigMode = wifiConfigModeDisplayed;
-      setupWifiManager();
-      break;
+    case MESH:
+      activeMenu = menuModeDisplayed;
     }
     break;
   case OTA:
@@ -322,6 +194,8 @@ void ConfigMenu::menuAction(){
     break;
   case BEEP:
     break;
+  case MESH:
+    break;
   }
 }
 
@@ -330,8 +204,6 @@ void ConfigMenu::incrementAction(){
   case MENUSTART:
     switch(menuModeDisplayed){
     case MENUSTART: // Does not exist
-    case WIFI:
-      menuModeDisplayed = OTA;
       break;
     case OTA:
       menuModeDisplayed = BRIGHTNESS;
@@ -340,17 +212,10 @@ void ConfigMenu::incrementAction(){
       menuModeDisplayed = BEEP;
       break;
     case BEEP:
-      menuModeDisplayed = WIFI;
+      menuModeDisplayed = MESH;
       break;
-    }
-    break;
-  case WIFI:
-    switch (wifiConfigModeDisplayed){
-    case WIFI_CONFIG_OFF:
-      wifiConfigModeDisplayed = WIFI_CONFIG_ON;
-      break;
-    case WIFI_CONFIG_ON:
-      wifiConfigModeDisplayed = WIFI_CONFIG_OFF;
+    case MESH:
+      menuModeDisplayed = OTA;
       break;
     }
     break;
@@ -369,6 +234,10 @@ void ConfigMenu::incrementAction(){
       else if ( beepVolume == 2) EasyBuzzer.singleBeep(2000, 200);
     }
     break;
+  case MESH:
+    //meshActive != meshActive;
+    meshActive = true;
+    break;
   }
 }
 
@@ -377,11 +246,9 @@ switch(activeMenu){
   case MENUSTART:
     switch(menuModeDisplayed){
     case MENUSTART: // Does not exist
-    case WIFI:
-      menuModeDisplayed = BEEP;
       break;
     case OTA:
-      menuModeDisplayed = WIFI;
+      menuModeDisplayed = MESH;
       break;
     case BRIGHTNESS:
       menuModeDisplayed = OTA;
@@ -389,15 +256,8 @@ switch(activeMenu){
     case BEEP:
       menuModeDisplayed = BRIGHTNESS;
       break;
-    }
-    break;
-  case WIFI:
-    switch (wifiConfigModeDisplayed){
-    case WIFI_CONFIG_OFF:
-      wifiConfigModeDisplayed = WIFI_CONFIG_ON;
-      break;
-    case WIFI_CONFIG_ON:
-      wifiConfigModeDisplayed = WIFI_CONFIG_OFF;
+    case MESH:
+      menuModeDisplayed = BEEP;
       break;
     }
     break;
@@ -416,5 +276,13 @@ switch(activeMenu){
       else if ( beepVolume == 2) EasyBuzzer.singleBeep(2000, 200);
     }
     break;
+  case MESH:
+    // meshActive != meshActive;
+    meshActive = true;
+    break;
   }
+}
+
+bool ConfigMenu::meshNetworkActive(){
+  return meshActive;
 }

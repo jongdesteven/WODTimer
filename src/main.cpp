@@ -5,6 +5,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
+#include "painlessMesh.h"
 
 // Classes
 #include "buttons.h"
@@ -15,8 +16,14 @@
 #include "TimerMenu.h"
 #include "TimerClock.h"
 
-#define DEEPSLEEP_TIME_US (3*1000000)
+#define DEEPSLEEP_TIME_US (5*1000000)
 #define SLEEP_TIMEOUT_MS  (60*1000)
+
+#define  MESH_SSID           "WODtimerMesh"
+#define  MESH_PASSWORD       "WDTmrPssWrd"
+#define  MESH_PORT           5555
+#define  MESH_DELIMITER      ";"
+#define  MESH_START_DELAY_MS 2000
 
 void returnAction();
 void powerAction();
@@ -24,15 +31,30 @@ void menuAction();
 void incrementAction();
 void decrementAction();
 bool wakeFromDeepSleep();
+void goDeepSleep();
+
+ // CallBacks for painlessMesh
+void receivedCallback(uint32_t from, String & msg);
+void newConnectionCallback(uint32_t nodeId);
+void changedConnectionCallback(); 
+void nodeTimeAdjustedCallback(int32_t offset); 
+void delayReceivedCallback(uint32_t from, int32_t delay);
+
+// mesh Functions
+void startMeshNetwork();
+void startTimerAsHost(MenuOption *menuOptionToSend);
+int numberOfConnectedNodes();
 
 void selectMenu();
 void displayMenu();
 
-MenuOption menuOptions[4] = { MenuOption("UP", 356400, 0, 0, true, false, EEPROM_UP_ADDR),
-                              MenuOption("UP", 45, 0, 2, true, false, EEPROM_UP_RD_ADDR),  
-                              MenuOption("dn", 10*60, 0, 0, false, false, EEPROM_DN_ADDR), 
-                              MenuOption("nt", 60, 30, 5, false, true, EEPROM_NT_ADDR)};
+painlessMesh mesh;
 
+MenuOption menuOptions[4] = { MenuOption("UP", 356400, 0, 0, true, EEPROM_UP_ADDR),
+                              MenuOption("UP", 45, 0, 2, true, EEPROM_UP_RD_ADDR),  
+                              MenuOption("dn", 10*60, 0, 0, false, EEPROM_DN_ADDR), 
+                              MenuOption("nt", 60, 30, 5, false, EEPROM_NT_ADDR)};
+MenuOption remoteMenuOption;
 DisplayControl displayLed(2);
 TimerMenu wodTimerMenu(displayLed, menuOptions);
 ConfigMenu configMenu(displayLed);
@@ -61,7 +83,18 @@ const char* sleepName = "   OFF";
 char displayText[6];
 char hostname[16];
 unsigned long lastActionMs;
+unsigned long remoteStartTimeMs;
 const char* boardName = "WODtimer";
+bool meshActive = false;
+
+void goDeepSleep(){
+  displayLed.shutdown(0, true);
+  delay(100);
+  WiFi.disconnect( true );
+  delay( 1 );
+  ESP.deepSleep(DEEPSLEEP_TIME_US, WAKE_RF_DEFAULT);
+  delay(100);
+}
 
 bool wakeFromDeepSleep(){
   if (ESP.getResetInfoPtr()->reason == REASON_DEEP_SLEEP_AWAKE){
@@ -92,7 +125,13 @@ void powerAction(){
     selectedMenuOption = wodTimerMenu.returnMenu();
     if (selectedMenuOption >= 0){
       activeTimer.setup(&menuOptions[selectedMenuOption]);
-      activeTimer.startClock();
+      if (configMenu.meshNetworkActive()){
+        //send start command
+        startTimerAsHost(&menuOptions[selectedMenuOption]);
+      }
+      else {
+        activeTimer.startClock();
+      }
       activeState = TIMER;
     }
     break;
@@ -209,7 +248,7 @@ void selectMenu(){
   case SLEEP:
     displayLed.shutdown(0, true);
     delay(200);
-    ESP.deepSleep(3*1000000, WAKE_RF_DEFAULT); // Possibility to enable wifi direct after this.
+    ESP.deepSleep(DEEPSLEEP_TIME_US, WAKE_RF_DEFAULT); // Possibility to enable wifi direct after this.
     delay(100);
     break;
   }
@@ -233,6 +272,90 @@ void displayMenu(){
   }
 }
 
+void startMeshNetwork(){
+  WiFi.forceSleepWake();
+  delay(1);
+  WiFi.persistent(false);
+  mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT);
+
+}
+
+void startTimerAsHost(MenuOption *menuOptionToSend){
+  String msg = String(menuOptionToSend->getDisplayName());
+  msg += String(MESH_DELIMITER);
+  msg += String(menuOptionToSend->getStartTime1());
+  msg += String(MESH_DELIMITER);
+  msg += String(menuOptionToSend->getStartTime2());
+  msg += String(MESH_DELIMITER);
+  msg += String(menuOptionToSend->getNrOfRounds());
+  msg += String(MESH_DELIMITER);
+  if(menuOptionToSend->getCountDirectionUp()){
+    msg += String(1);
+  }
+  else {
+    msg += String(0);
+  }
+  msg += String(MESH_DELIMITER);
+  remoteStartTimeMs = mesh.getNodeTime() + MESH_START_DELAY_MS;
+  msg += String(remoteStartTimeMs);
+  
+  mesh.sendBroadcast(msg);
+}
+
+void receivedCallback(uint32_t from, String& msg){
+  int last = 0;
+  int next = 0;
+  //MenuOption data
+  char name[3] = "--";
+  unsigned long time1 = 0;
+  unsigned long time2 = 0;
+  int rounds= 0;
+  bool countUp = false;
+
+  if ( (next = msg.indexOf(MESH_DELIMITER, last)) != -1){
+    msg.substring(last, next).toCharArray(name, sizeof(name));
+    last = next + 1;
+  } else { return; }
+  if ( (next = msg.indexOf(MESH_DELIMITER, last)) != -1){
+    time1 = msg.substring(last, next).toInt();
+    last = next + 1;
+  } else { return; }
+  if ( (next = msg.indexOf(MESH_DELIMITER, last)) != -1){
+    time2 = msg.substring(last, next).toInt();
+    last = next + 1;
+  } else { return; }
+  if ( (next = msg.indexOf(MESH_DELIMITER, last)) != -1){
+    rounds = msg.substring(last, next).toInt();
+    last = next + 1;
+  } else { return; }
+  if ( (next = msg.indexOf(MESH_DELIMITER, last)) != -1){
+    if (msg.substring(last, next).compareTo("1") == 0){
+      countUp = true;
+    }
+    last = next + 1;
+  } else { return; }
+  if ( (next = msg.indexOf(MESH_DELIMITER, last)) == -1){ //Last item
+    remoteStartTimeMs = (unsigned long)msg.substring(last).toInt();
+  } else { return; }
+
+  remoteMenuOption.initialize(name, time1, time2, rounds, countUp, EEPROM_DO_NOT_SAVE);
+  activeTimer.setup(&remoteMenuOption);
+  activeState = TIMER;
+}
+
+void newConnectionCallback(uint32_t nodeId){
+
+}
+void changedConnectionCallback(){
+
+}
+void nodeTimeAdjustedCallback(int32_t offset){
+
+}
+void delayReceivedCallback(uint32_t from, int32_t delay){
+
+}
+
 void setup() {
   if (!wakeFromDeepSleep()){
     // ESP.deepSleep(DEEPSLEEP_TIME_US, WAKE_RF_DISABLED); //Final version
@@ -240,10 +363,10 @@ void setup() {
     delay(100);
   }
   
-  EEPROM.begin(50);
-  WiFi.disconnect(true);
-  WiFi.mode(WIFI_STA);
+  EEPROM.begin(50); //TODO: make dynamic
+  WiFi.mode(WIFI_OFF);
   WiFi.forceSleepBegin();
+  delay(1);
   
   sprintf(hostname, "%s-%06x", boardName,  ESP.getChipId());
   activeState = TIMERMENU;
@@ -258,6 +381,12 @@ void setup() {
     menuOptions[i].setup();
   }
 
+  mesh.onReceive(&receivedCallback);
+  mesh.onNewConnection(&newConnectionCallback);
+  mesh.onChangedConnections(&changedConnectionCallback);
+  mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
+  mesh.onNodeDelayReceived(&delayReceivedCallback);
+
   pwrBtn.setup();
   menuBtn.setup();
   minBtn.setup();
@@ -265,6 +394,7 @@ void setup() {
   wodTimerMenu.setup();
   
   lastActionMs = millis();
+  remoteStartTimeMs = 0;
 }
 
 void loop() {
@@ -274,6 +404,20 @@ void loop() {
   plusBtn.loop();
   displayLed.loop();
   EasyBuzzer.update();
+
+  // Start Mesh network when requested in config
+  if (configMenu.meshNetworkActive()){
+    if ( WiFi.getMode() == WIFI_OFF ){
+      startMeshNetwork();
+    }
+    mesh.update();
+  }
+
+  // Start timer on remote request
+  if (remoteStartTimeMs != 0 && mesh.getNodeTime() >= remoteStartTimeMs){
+    activeTimer.startClock();
+    remoteStartTimeMs = 0;
+  }
 
   switch(activeState){
   case MENUSTART:
@@ -290,11 +434,7 @@ void loop() {
     configMenu.loop();
     break;
   case SLEEP:
-    displayLed.shutdown(0, true);
-    delay(200);
-    // ESP.deepSleep(DEEPSLEEP_TIME_US, WAKE_RF_DISABLED); //Final version
-    ESP.deepSleep(DEEPSLEEP_TIME_US, WAKE_RF_DEFAULT);
-    delay(100);
+    goDeepSleep();
     break;
   }
 
