@@ -6,7 +6,7 @@ DisplayControl::DisplayControl(const byte load_csPin) :
   }
 
 void DisplayControl::setup(){
-  sprintf(displayText, "------");
+  displayText = "------";
   displayRefresh = false;
   lastBlinkChangeMs = millis();
   blinkingSegmentOn = false;
@@ -16,7 +16,7 @@ void DisplayControl::setup(){
   shutdown(0, true);
 }
 
-char* DisplayControl::getText(){
+String DisplayControl::getText(){
   return displayText;
 }
 
@@ -30,19 +30,19 @@ void DisplayControl::start(){
   shutdown(0, false);
 }
 
-void DisplayControl::displayCharArray(char *text, bool colonOn){
+void DisplayControl::displayCharArray(String text, bool colonOn){
   colonIsOn = colonOn;
-  if (strcmp(displayText, text) != 0){
-    strcpy(displayText, text);
+  if ( displayText.compareTo(text) != 0 ){
+    displayText = text;
     displayRefresh = true;
     blinkingSegments = 0;
   }
 }
 
-void DisplayControl::displayCharArray(char *text, byte segmentsToBlink, bool colonOn){
+void DisplayControl::displayCharArray(String text, byte segmentsToBlink, bool colonOn){
   colonIsOn = colonOn;
-  if (strcmp(displayText, text) != 0 || segmentsToBlink != blinkingSegments){
-    strcpy(displayText, text);
+  if ( displayText.compareTo(text) != 0 || segmentsToBlink != blinkingSegments){
+    displayText = text;
     blinkingSegments = segmentsToBlink;
     displayRefresh = true;
   }
@@ -55,7 +55,7 @@ void DisplayControl::forceDisplayUpdate(){
 void DisplayControl::loop(){
   if (displayRefresh) {
     for( int i=0; i<6; i++){
-      setChar(0, i, displayText[i], false);
+      setChar(0, i, displayText.charAt(i), false);
     }
     setChar(0, 6, ' ', colonIsOn);
     displayRefresh = false;
@@ -66,7 +66,7 @@ void DisplayControl::loop(){
         setChar(0, i, ' ', false);
       }
       else {
-        setChar(0, i, displayText[i], false);
+        setChar(0, i, displayText.charAt(i), false);
       }
     }
     setChar(0, 6, ' ', colonIsOn);

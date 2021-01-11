@@ -306,14 +306,14 @@ void receivedCallback(uint32_t from, String& msg){
   int last = 0;
   int next = 0;
   //MenuOption data
-  char name[3] = "--";
+  String name = "--";
   unsigned long time1 = 0;
   unsigned long time2 = 0;
   int rounds= 0;
   bool countUp = false;
 
   if ( (next = msg.indexOf(MESH_DELIMITER, last)) != -1){
-    msg.substring(last, next).toCharArray(name, sizeof(name));
+    name = msg.substring(last, next);
     last = next + 1;
   } else { return; }
   if ( (next = msg.indexOf(MESH_DELIMITER, last)) != -1){

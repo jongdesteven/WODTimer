@@ -7,21 +7,21 @@ void TimerMenu::displayMenu(){
   switch (menuMode){
   case MENUSTART:
     if ( menuOptions[activeMenu].getNrOfRounds() > 0 ) {
-      sprintf(displayText,"%2s  rd", menuOptions[activeMenu].getDisplayName());
+      sprintf(displayText,"%2s  rd", menuOptions[activeMenu].getDisplayName().c_str());
     } else {
-      sprintf(displayText,"%2s    ", menuOptions[activeMenu].getDisplayName());
+      sprintf(displayText,"%2s    ", menuOptions[activeMenu].getDisplayName().c_str());
     }
     blinkingSegment = 0;
     colonShown = false;
     break;
   case INTERVAL1:
-    sprintf(displayText,"1 %02d%02d", (int)menuOptions[activeMenu].getStartTime1()/60, (int)menuOptions[activeMenu].getStartTime1()%60);
+    sprintf(displayText,"1 %02d%02d", (int)(menuOptions[activeMenu].getStartTime1()/60), (int)(menuOptions[activeMenu].getStartTime1()%60));
     if (changeDigit == MINUTES) blinkingSegment = 0b001100;
     else if (changeDigit == SECONDS) blinkingSegment = 0b000011;
     colonShown = true;
     break;
   case INTERVAL2:
-    sprintf(displayText,"2 %02d%02d", (int)menuOptions[activeMenu].getStartTime2()/60, (int)menuOptions[activeMenu].getStartTime2()%60);
+    sprintf(displayText,"2 %02d%02d", (int)(menuOptions[activeMenu].getStartTime2()/60), (int)(menuOptions[activeMenu].getStartTime2()%60));
     if (changeDigit == MINUTES) blinkingSegment = 0b001100;
     else if (changeDigit == SECONDS) blinkingSegment = 0b000011;
     colonShown = true;

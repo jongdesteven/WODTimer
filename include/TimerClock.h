@@ -1,6 +1,7 @@
 #ifndef TIMERCLOCK_H
 #define TIMERCLOCK_H
 
+#include <Arduino.h>
 #include "DisplayControl.h"
 #include "MenuOption.h"
 #include "EasyBuzzer.h"
@@ -11,7 +12,7 @@ class TimerClock {
 private:
   DisplayControl &displayLed;
   MenuOption *activeOption;
-  char displayText[6];
+  String displayText;
   unsigned long startTimeMs;
   unsigned int activeSecond;
   byte beepVolume;

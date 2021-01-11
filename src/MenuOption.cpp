@@ -1,7 +1,7 @@
 #include "MenuOption.h"
 
-MenuOption::MenuOption(const char* name, unsigned long time1, unsigned long time2, int rounds, bool countUp, EepromLayout eeAddress) {
-  strcpy(displayName, name);
+MenuOption::MenuOption(String name, unsigned long time1, unsigned long time2, int rounds, bool countUp, EepromLayout eeAddress) {
+  displayName = name;
   startTimeInterval1Sec = time1;
   startTimeInterval2Sec = time2;
   nrOfRounds = rounds;
@@ -12,8 +12,8 @@ MenuOption::MenuOption(const char* name, unsigned long time1, unsigned long time
 MenuOption::MenuOption(){
 }
 
-void MenuOption::initialize(const char* name, unsigned long time1, unsigned long  time2, int rounds, bool countUp, EepromLayout eeAddress){
-  strcpy(displayName, name);
+void MenuOption::initialize(String name, unsigned long time1, unsigned long  time2, int rounds, bool countUp, EepromLayout eeAddress){
+  displayName = name;
   startTimeInterval1Sec = time1;
   startTimeInterval2Sec = time2;
   nrOfRounds = rounds;
@@ -64,7 +64,7 @@ void MenuOption::setup(){
   
 }
 
-const char* MenuOption::getDisplayName(){
+String MenuOption::getDisplayName(){
   return displayName;
 }
 

@@ -23,10 +23,10 @@ private:
   }activeMenu;
   MenuMode menuModeDisplayed;
 
-  const char* otaName = "  OtA "; // 
-  const char* brightnessName = "  disp"; // 
-  const char* beepName = "  bEEP"; //
-  const char* meshName = "  MESH";
+  const char* otaName = "  OtA ";
+  const char* brightnessName = "  disp";
+  const char* beepName = "  bEEP";
+  const char* meshName = "  SESH";
   
   void turnOnOTA();
   
@@ -39,7 +39,7 @@ private:
   byte displayBrightness = 0;
   byte beepVolume = 0;
 
-  bool meshActive = true; // Change to default off
+  bool meshActive = false; // Change to default off
 
 public:
   ConfigMenu(DisplayControl &displayToAttach);

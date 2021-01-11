@@ -1,7 +1,7 @@
 #ifndef DISPLAYCONTROL_H
 #define DISPLAYCONTROL_H
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include "LedControl_HW_SPI.h"
 #include "eepromLayout.h"
 
@@ -9,7 +9,7 @@ class DisplayControl: public LedControl_HW_SPI {
   
 private:
   const byte csPin;
-  char displayText[6];
+  String displayText;
   bool displayRefresh;
   byte blinkingSegments;
   unsigned long lastBlinkChangeMs;
@@ -18,10 +18,10 @@ private:
   
   public:
     DisplayControl(const byte load_csPin);
-    char* getText();
-    void displayCharArray(char *text, bool colonOn);
+    String getText();
+    void displayCharArray(String text, bool colonOn);
     /* char text[6], segmentsToBlink is bit mask 1=blink */
-    void displayCharArray(char *text, byte segmentsToBlink, bool colonOn);
+    void displayCharArray(String text, byte segmentsToBlink, bool colonOn);
     void forceDisplayUpdate();
     void setup();
     void loop();

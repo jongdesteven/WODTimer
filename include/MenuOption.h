@@ -6,7 +6,7 @@
 
 class MenuOption {
 private:
-  char* displayName = "--"; //2 green characters
+  String displayName; //2 green characters
   unsigned long startTimeInterval1Sec = 60;
   unsigned long startTimeInterval2Sec = 0;
   int nrOfRounds = 0;
@@ -14,11 +14,11 @@ private:
   EepromLayout eepromAddress = EEPROM_DO_NOT_SAVE;
 
 public:
-  MenuOption(const char* name, unsigned long time1, unsigned long  time2, int rounds, bool countUp, EepromLayout eeAddress);
+  MenuOption(String name, unsigned long time1, unsigned long  time2, int rounds, bool countUp, EepromLayout eeAddress);
   MenuOption();
-  void initialize(const char* name, unsigned long time1, unsigned long  time2, int rounds, bool countUp, EepromLayout eeAddress);
+  void initialize(String name, unsigned long time1, unsigned long  time2, int rounds, bool countUp, EepromLayout eeAddress);
   void setup();
-  const char* getDisplayName();
+  String getDisplayName();
   unsigned long getStartTime1();
   unsigned long getStartTime2();
   int getNrOfRounds();

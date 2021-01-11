@@ -154,29 +154,22 @@ void TimerClock::startClock() {
 
 void TimerClock::setup(MenuOption *optionToAttach) {
   activeOption = optionToAttach;
-  sprintf(displayText, "gO    ");
+  //sprintf(displayText, "gO    ");
+  displayText = "gO    ";
   state = TIMER_END;
   EasyBuzzer.setPin(15);
   beepVolume = EEPROM.read(EEPROM_BEEP_ADDR);
   if (beepVolume < 0 || beepVolume > 2){
     beepVolume = 0;
   }
-  Serial.println("Setup:");
-  Serial.print("name: ");
-  Serial.println(activeOption->getDisplayName());
-  Serial.print("time1: ");
-  Serial.println(activeOption->getStartTime1());
-  Serial.print("time2: ");
-  Serial.println(activeOption->getStartTime2());
-  Serial.print("rounds: ");
-  Serial.println(activeOption->getNrOfRounds());
-  Serial.print("dir: ");
+
   if ( activeOption->getCountDirectionUp()){ Serial.println("Up");}
   else { Serial.println("Down");}
 
 }
 
 void TimerClock::loop() {
+  char textToDisplay[7];
   if ( (millis()-startTimeMs) >= activeSecond*1000 ) {
     switch (state) {
     case PRECOUNTDOWN :
@@ -185,32 +178,33 @@ void TimerClock::loop() {
         startClock();
       }
       else {
-        sprintf(displayText,"    %2d", 10-activeSecond);
+        sprintf(textToDisplay,"    %2d", 10-activeSecond);
         activeSecond++; 
       }
+      displayText = String(textToDisplay);
       displayLed.displayCharArray(displayText, false);
       break;
     case RUN_UP:
       beepAtTheEnd();
       if (activeSecond == 0){
         if ( activeOption->getNrOfRounds() == 0){
-          sprintf(displayText,"%2s0000", activeOption->getDisplayName());
+          sprintf(textToDisplay,"%2s0000", activeOption->getDisplayName().c_str());
         }
         else{
-          sprintf(displayText," 10000");
+          sprintf(textToDisplay," 10000");
         }
         activeSecond++;
       }
       else if (roundsLeft() > 0){
         if ( activeOption->getNrOfRounds() > 0){
-          sprintf(displayText,"%2d%02d%02d", roundsIn(), secondThisInterval()/60, secondThisInterval()%60);
+          sprintf(textToDisplay,"%2d%02d%02d", roundsIn(), secondThisInterval()/60, secondThisInterval()%60); 
         }
         else {
           if (((activeSecond)/60) < 60) { //first hour, show "UP"
-            sprintf(displayText,"%2s%02d%02d", activeOption->getDisplayName(), secondThisInterval()/60, secondThisInterval()%60);
+            sprintf(textToDisplay,"%2s%02d%02d", activeOption->getDisplayName().c_str(), secondThisInterval()/60, secondThisInterval()%60);
           }
           else { //passed the hour
-            sprintf(displayText,"%02d%02d%02d", secondThisInterval()/3600, (secondThisInterval()/60)%60, secondThisInterval()%60);
+            sprintf(textToDisplay,"%02d%02d%02d", secondThisInterval()/3600, (secondThisInterval()/60)%60, secondThisInterval()%60);
           }
         } 
         activeSecond++;
@@ -218,31 +212,32 @@ void TimerClock::loop() {
       else {
         state = TIMER_END;
       }
-      displayLed.displayCharArray(displayText, true);
+      displayLed.displayCharArray(String(textToDisplay), true);
       break;
     case RUN_DOWN:
       beepAtTheEnd();
       if (roundsLeft() > 0){
         if (activeOption->getStartTime2() > 0) {
-          sprintf(displayText,"%2d%02d%02d", intervalsLeft(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
+          sprintf(textToDisplay,"%2d%02d%02d", intervalsLeft(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
         }
         else if ( activeOption->getNrOfRounds() > 0){
-          sprintf(displayText,"%2d%02d%02d", roundsLeft(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
+          sprintf(textToDisplay,"%2d%02d%02d", roundsLeft(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
         }
         else {
-          sprintf(displayText,"%2s%02d%02d", activeOption->getDisplayName(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
+          sprintf(textToDisplay,"%2s%02d%02d", activeOption->getDisplayName().c_str(), secondsLeftThisInterval()/60, secondsLeftThisInterval()%60);
         }
         activeSecond++;
       }
       else { //roundsLeft == 0
         if (activeOption->getStartTime2() > 0 || activeOption->getNrOfRounds() > 0){
-          sprintf(displayText," 00000");
+          sprintf(textToDisplay," 00000");
         }
         else {
-          sprintf(displayText,"%2s0000", activeOption->getDisplayName());
+          sprintf(textToDisplay,"%2s0000", activeOption->getDisplayName().c_str());
         }
         state = TIMER_END;
       }
+      displayText = String(textToDisplay);
       displayLed.displayCharArray(displayText, true);
       break;
     case PAUSE:
