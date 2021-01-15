@@ -5,8 +5,15 @@ displayLed(displayToAttach)
 {
 }
 
+void ConfigMenu::otaProgressCallback(unsigned int progress, unsigned int total){
+  //Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+  String text = String( (progress/total)*99, DEC ) + " OtA";
+  displayLed.displayCharArray(text,false);
+}
+
 void ConfigMenu::turnOnOTA(){
   char hostname[16];
+  unsigned int connectTimeOutMs = millis();
   sprintf(hostname, "%s-%06x", "WODtimer",  ESP.getChipId());
   //Serial.print("Wifi: ");
   WiFi.hostname(hostname);
@@ -17,36 +24,35 @@ void ConfigMenu::turnOnOTA(){
   // No authentication by default
   // ArduinoOTA.setPassword("admin");
   
-  ArduinoOTA.onStart([]() {
-    String type;
-    if (ArduinoOTA.getCommand() == U_FLASH) {
-      type = "sketch";
-    } else { // U_FS
-      type = "filesystem";
-	  }
-	  // NOTE: if updating FS this would be the place to unmount FS using FS.end()
-	  //Serial.println("Start updating " + type);
-  });
-  ArduinoOTA.onEnd([]() {
-    //Serial.println("\nEnd");
-  });
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    //Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-  });
-  ArduinoOTA.onError([](ota_error_t error) {
-    //Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) {
-      //Serial.println("Auth Failed");
-    } else if (error == OTA_BEGIN_ERROR) {
-      //Serial.println("Begin Failed");
-    } else if (error == OTA_CONNECT_ERROR) {
-      //Serial.println("Connect Failed");
-    } else if (error == OTA_RECEIVE_ERROR) {
-      //Serial.println("Receive Failed");
-    } else if (error == OTA_END_ERROR) {
-      //Serial.println("End Failed");
-    }
-  });
+  // ArduinoOTA.onStart([]() {
+  //   String type;
+  //   if (ArduinoOTA.getCommand() == U_FLASH) {
+  //     type = "sketch";
+  //   } else { // U_FS
+  //     type = "filesystem";
+	//   }
+	//   // NOTE: if updating FS this would be the place to unmount FS using FS.end()
+	//   //Serial.println("Start updating " + type);
+  // });
+  // ArduinoOTA.onEnd([]() {
+  //   //Serial.println("\nEnd");
+  // });
+  //ArduinoOTA.onProgress(otaProgressCallback);
+
+  // ArduinoOTA.onError([](ota_error_t error) {
+  //   //Serial.printf("Error[%u]: ", error);
+  //   if (error == OTA_AUTH_ERROR) {
+  //     //Serial.println("Auth Failed");
+  //   } else if (error == OTA_BEGIN_ERROR) {
+  //     //Serial.println("Begin Failed");
+  //   } else if (error == OTA_CONNECT_ERROR) {
+  //     //Serial.println("Connect Failed");
+  //   } else if (error == OTA_RECEIVE_ERROR) {
+  //     //Serial.println("Receive Failed");
+  //   } else if (error == OTA_END_ERROR) {
+  //     //Serial.println("End Failed");
+  //   }
+  // });
   ArduinoOTA.begin();
 }
 
@@ -54,6 +60,7 @@ void ConfigMenu::setup(){
   activeMenu = MENUSTART;
   menuModeDisplayed = BRIGHTNESS;
   EasyBuzzer.setPin(15);
+  otaConnectMessageSent = false;
 
   displayBrightness = EEPROM.read(EEPROM_BRIGHTNESS_ADDR);
   if (displayBrightness < 0 || displayBrightness > 15) {
@@ -118,22 +125,25 @@ void ConfigMenu::displayMenu(){
 void ConfigMenu::displayOtaMenu(){
   if (WiFi.status() == WL_CONNECTED) {
     sprintf(displayText, "On OtA");
+    if (!otaConnectMessageSent )
+    displayLed.displayTempMessage( (String("IP ") + String(WiFi.localIP()[3])) );
+    otaConnectMessageSent = true;
   }
   else{
     sprintf(displayText, "Of OtA");
   }
-  displayLed.displayCharArray(displayText, false);
+  displayLed.displayCharArray(String(displayText), false);
   ArduinoOTA.handle();
 }
 
 void ConfigMenu::displayMeshMenu(){
   if (meshActive){
-    sprintf(displayText, "OnMESH");
+    sprintf(displayText, "OnSESH");
   }
   else {
-    sprintf(displayText, "OfMESH");
+    sprintf(displayText, "OfSESH");
   }
-  displayLed.displayCharArray(displayText, false);
+  displayLed.displayCharArray(String(displayText), false);
 }
 
 void ConfigMenu::returnAction(){

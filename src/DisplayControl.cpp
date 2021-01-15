@@ -11,6 +11,7 @@ void DisplayControl::setup(){
   lastBlinkChangeMs = millis();
   blinkingSegmentOn = false;
   colonIsOn = false;
+  tempMessageOn = false;
 
   begin(csPin, 1, 10000000);
   shutdown(0, true);
@@ -48,19 +49,49 @@ void DisplayControl::displayCharArray(String text, byte segmentsToBlink, bool co
   }
 }
 
+// Display temporary message, possibly longer than 4char on red chars only
+void DisplayControl::displayTempMessage(String text){
+  tempMessage = text;
+
+  tempMessageStartIndex = 0;
+  longTextLastScrollMs = millis();
+  startTempMessageMs = millis();
+  tempMessageOn = true;
+}
+
 void DisplayControl::forceDisplayUpdate(){
   displayRefresh = true;
 }
 
 void DisplayControl::loop(){
-  if (displayRefresh) {
+  // Display temporary message, possibly longer than 4char on red chars only
+  if (tempMessageOn){
+    if (millis() - longTextLastScrollMs >= SCROLLSPEED_MS){
+      int messageSplit = tempMessage.length();
+      if (messageSplit >= 4) messageSplit = 4;
+
+      for( int i = 0; i<messageSplit; i++){
+        setChar(0, i+2, tempMessage.charAt(tempMessageStartIndex+i), false);
+      }
+
+      if(tempMessageStartIndex+3 < tempMessage.length()){
+        tempMessageStartIndex++;
+      }
+      else if (millis() - startTempMessageMs >= TEMPMESSAGE_MIN_MS){
+        tempMessageOn = false;
+        displayRefresh = true;
+      }
+      longTextLastScrollMs = millis();
+    }
+  }
+  else if (displayRefresh) {
     for( int i=0; i<6; i++){
       setChar(0, i, displayText.charAt(i), false);
     }
     setChar(0, 6, ' ', colonIsOn);
     displayRefresh = false;
   }
-  else if ( blinkingSegments > 0 && millis() - lastBlinkChangeMs >= 500){
+  else if ( blinkingSegments > 0 && millis() - lastBlinkChangeMs >= BLINKSPEED_MS){
     for( int i=0; i<6; i++){
       if ( blinkingSegmentOn && blinkingSegments & 0x01<<(5-i)  ){
         setChar(0, i, ' ', false);

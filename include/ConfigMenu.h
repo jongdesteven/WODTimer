@@ -13,6 +13,7 @@ class ConfigMenu {
 private:
   DisplayControl &displayLed;
   char displayText[6];
+  bool otaConnectMessageSent;
 
   enum MenuMode {
     MENUSTART = 0,
@@ -35,6 +36,7 @@ private:
   void displayBeepMenu();
   void displayOtaMenu();
   void displayMeshMenu();
+  void otaProgressCallback(unsigned int progress, unsigned int total);
 
   byte displayBrightness = 0;
   byte beepVolume = 0;

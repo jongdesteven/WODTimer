@@ -86,8 +86,13 @@ unsigned long lastActionMs;
 unsigned long remoteStartTimeMs;
 const char* boardName = "WODtimer";
 bool meshActive = false;
+bool meshConnected = false;
 
 void goDeepSleep(){
+  if (configMenu.meshNetworkActive()){
+    mesh.stop();
+    mesh.setRoot();
+  }
   displayLed.shutdown(0, true);
   delay(100);
   WiFi.disconnect( true );
@@ -344,14 +349,18 @@ void receivedCallback(uint32_t from, String& msg){
 }
 
 void newConnectionCallback(uint32_t nodeId){
-
+  if (!meshConnected){
+    displayLed.displayTempMessage("connected");
+    meshConnected = true;
+  }
 }
 void changedConnectionCallback(){
 
 }
 void nodeTimeAdjustedCallback(int32_t offset){
-
+  displayLed.displayTempMessage("tine sync");
 }
+
 void delayReceivedCallback(uint32_t from, int32_t delay){
 
 }
